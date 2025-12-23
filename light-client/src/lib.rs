@@ -126,7 +126,7 @@ async fn build_block_input(
         last_height = height;
 
         //let client_executor_input = self.ctx.generate_executor_input(height).await?;
-        executor_inputs.push(client_executor_input);
+        //executor_inputs.push(client_executor_input);
     }
 
     // Construct the block execution input
@@ -154,11 +154,122 @@ async fn build_block_input(
     Ok(input)
 }
 
-#[tokio::test]
-async fn test_prepare_inputs() {
-    use alloy_provider::ProviderBuilder;
-    use url::Url;
+#[cfg(test)]
+mod tests {
+    use std::time::SystemTime;
 
-    let celestia_client = Arc::new(Client::new("CELESTIA_RPC_URL", None).await.unwrap());
-    let evm_provider = ProviderBuilder::new().connect_http(Url::parse("EVM_RPC_URL").unwrap());
+    use super::*;
+    use dstack_verifier::Attestation;
+    use serde::Deserialize;
+
+    #[derive(Deserialize)]
+    struct QuoteReport {
+        quote: String,
+        event_log: String,
+        report_data: String,
+        vm_config: String,
+    }
+
+    #[tokio::test]
+    async fn test_prepare_inputs() {
+        use alloy_provider::ProviderBuilder;
+        use url::Url;
+
+        let celestia_client = Arc::new(Client::new("CELESTIA_RPC_URL", None).await.unwrap());
+        let evm_provider = ProviderBuilder::new().connect_http(Url::parse("EVM_RPC_URL").unwrap());
+    }
+
+    #[tokio::test]
+    async fn test_verify_quote() {
+        // Read the quote report from fixtures
+        let fixture_path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/quote-report.json");
+        let json_content =
+            std::fs::read_to_string(fixture_path).expect("Failed to read fixture file");
+        let report: QuoteReport =
+            serde_json::from_str(&json_content).expect("Failed to parse JSON");
+
+        // Decode the hex-encoded quote
+        let quote = hex::decode(&report.quote).expect("Failed to decode quote hex");
+        let event_log = report.event_log.as_bytes();
+
+        // Create attestation from quote and event log
+        let attestation =
+            Attestation::new(quote, event_log.to_vec()).expect("Failed to create attestation");
+
+        // Decode the report data from the attestation
+        let report_data = attestation
+            .decode_report_data()
+            .expect("Failed to decode report data");
+
+        // Verify the attestation
+        attestation
+            .clone()
+            .verify(
+                &report_data,
+                Some("https://pccs.phala.network/sgx/certification/v4/"),
+            )
+            .await
+            .expect("Failed to verify attestation");
+
+        // Decode app info
+        match attestation.decode_app_info(false) {
+            Ok(info) => {
+                println!("Device ID: {}", hex::encode(info.device_id));
+            }
+            Err(e) => {
+                panic!("Failed to decode app info: {}", e);
+            }
+        };
+    }
+
+    #[tokio::test]
+    async fn test_verify_quote_alt() {
+        // Read the quote report from fixtures
+        let fixture_path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/quote-report.json");
+        let json_content =
+            std::fs::read_to_string(fixture_path).expect("Failed to read fixture file");
+        let report: QuoteReport =
+            serde_json::from_str(&json_content).expect("Failed to parse JSON");
+
+        // Decode the hex-encoded quote
+        let quote = hex::decode(&report.quote).expect("Failed to decode quote hex");
+        let event_log = report.event_log.as_bytes();
+
+        // Create attestation from quote and event log
+        let attestation = Attestation::new(quote.clone(), event_log.to_vec())
+            .expect("Failed to create attestation");
+
+        // Decode the report data from the attestation
+        let report_data = attestation
+            .decode_report_data()
+            .expect("Failed to decode report data");
+
+        let collateral = dcap_qvl::collateral::get_collateral(
+            "https://pccs.phala.network/sgx/certification/v4/",
+            &quote,
+        )
+        .await
+        .expect("Failed to get collateral");
+
+        let now = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .expect("Failed to get current time")
+            .as_secs();
+
+        let verified_attestation = attestation
+            .clone()
+            .verify_with_collateral(&report_data, collateral, now)
+            .await
+            .expect("Failed to verify collateral");
+
+        // Decode app info
+        match verified_attestation.decode_app_info(false) {
+            Ok(info) => {
+                println!("Device ID: {}", hex::encode(info.device_id));
+            }
+            Err(e) => {
+                panic!("Failed to decode app info: {}", e);
+            }
+        };
+    }
 }

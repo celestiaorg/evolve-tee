@@ -1552,7 +1552,7 @@ dependencies = [
 [[package]]
 name = "cc-eventlog"
 version = "0.5.5"
-source = "git+https://github.com/jonas089/dstack#c3224de51dff474ad8c2e269b732a2bf2a358d49"
+source = "git+https://github.com/jonas089/dstack#358ac7d45beac1dc7bc08660cbd23b8dd0ed2c89"
 dependencies = [
  "anyhow",
  "fs-err",
@@ -2093,8 +2093,7 @@ dependencies = [
 [[package]]
 name = "dcap-qvl"
 version = "0.3.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "435989ce7ba46ba3f837f9df3c8139469e72ae810e707893b19f8b6b370d14ef"
+source = "git+https://github.com/jonas089/dcap-qvl?branch=v0.3.4-zk#e0c27919964ec4fc2470731423f393d1e9c428dc"
 dependencies = [
  "anyhow",
  "asn1_der",
@@ -2326,7 +2325,7 @@ dependencies = [
 [[package]]
 name = "dstack-mr"
 version = "0.5.5"
-source = "git+https://github.com/jonas089/dstack#c3224de51dff474ad8c2e269b732a2bf2a358d49"
+source = "git+https://github.com/jonas089/dstack#358ac7d45beac1dc7bc08660cbd23b8dd0ed2c89"
 dependencies = [
  "anyhow",
  "bon",
@@ -2346,7 +2345,7 @@ dependencies = [
 [[package]]
 name = "dstack-sdk"
 version = "0.1.2"
-source = "git+https://github.com/jonas089/dstack#c3224de51dff474ad8c2e269b732a2bf2a358d49"
+source = "git+https://github.com/jonas089/dstack#358ac7d45beac1dc7bc08660cbd23b8dd0ed2c89"
 dependencies = [
  "alloy",
  "anyhow",
@@ -2365,7 +2364,7 @@ dependencies = [
 [[package]]
 name = "dstack-sdk-types"
 version = "0.1.2"
-source = "git+https://github.com/jonas089/dstack#c3224de51dff474ad8c2e269b732a2bf2a358d49"
+source = "git+https://github.com/jonas089/dstack#358ac7d45beac1dc7bc08660cbd23b8dd0ed2c89"
 dependencies = [
  "anyhow",
  "bon",
@@ -2379,7 +2378,7 @@ dependencies = [
 [[package]]
 name = "dstack-types"
 version = "0.5.5"
-source = "git+https://github.com/jonas089/dstack#c3224de51dff474ad8c2e269b732a2bf2a358d49"
+source = "git+https://github.com/jonas089/dstack#358ac7d45beac1dc7bc08660cbd23b8dd0ed2c89"
 dependencies = [
  "serde",
  "serde-human-bytes",
@@ -2390,7 +2389,7 @@ dependencies = [
 [[package]]
 name = "dstack-verifier"
 version = "0.5.5"
-source = "git+https://github.com/jonas089/dstack#c3224de51dff474ad8c2e269b732a2bf2a358d49"
+source = "git+https://github.com/jonas089/dstack#358ac7d45beac1dc7bc08660cbd23b8dd0ed2c89"
 dependencies = [
  "anyhow",
  "cc-eventlog",
@@ -3875,11 +3874,18 @@ dependencies = [
  "anyhow",
  "celestia-rpc",
  "celestia-types",
+ "dcap-qvl",
+ "dstack-sdk",
+ "dstack-types",
+ "dstack-verifier",
  "ev-types",
  "ev-zkevm-types",
+ "hex",
  "prost 0.12.6",
  "rsp-client-executor",
+ "serde",
  "serde_cbor",
+ "serde_json",
  "tendermint-light-client-verifier",
  "tokio",
  "url",
@@ -5160,7 +5166,7 @@ checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
 [[package]]
 name = "ra-tls"
 version = "0.5.5"
-source = "git+https://github.com/jonas089/dstack#c3224de51dff474ad8c2e269b732a2bf2a358d49"
+source = "git+https://github.com/jonas089/dstack#358ac7d45beac1dc7bc08660cbd23b8dd0ed2c89"
 dependencies = [
  "anyhow",
  "bon",
@@ -7017,7 +7023,7 @@ checksum = "56199f7ddabf13fe5074ce809e7d3f42b42ae711800501b5b16ea82ad029c39d"
 [[package]]
 name = "size-parser"
 version = "0.5.5"
-source = "git+https://github.com/jonas089/dstack#c3224de51dff474ad8c2e269b732a2bf2a358d49"
+source = "git+https://github.com/jonas089/dstack#358ac7d45beac1dc7bc08660cbd23b8dd0ed2c89"
 dependencies = [
  "anyhow",
  "serde",
@@ -7296,7 +7302,7 @@ checksum = "55937e1799185b12863d447f42597ed69d9928686b8d88a1df17376a097d8369"
 [[package]]
 name = "tdx-attest"
 version = "0.5.5"
-source = "git+https://github.com/jonas089/dstack#c3224de51dff474ad8c2e269b732a2bf2a358d49"
+source = "git+https://github.com/jonas089/dstack#358ac7d45beac1dc7bc08660cbd23b8dd0ed2c89"
 dependencies = [
  "anyhow",
  "cc-eventlog",
@@ -7315,7 +7321,7 @@ dependencies = [
 [[package]]
 name = "tdx-attest-sys"
 version = "0.5.5"
-source = "git+https://github.com/jonas089/dstack#c3224de51dff474ad8c2e269b732a2bf2a358d49"
+source = "git+https://github.com/jonas089/dstack#358ac7d45beac1dc7bc08660cbd23b8dd0ed2c89"
 dependencies = [
  "bindgen",
  "cc",
