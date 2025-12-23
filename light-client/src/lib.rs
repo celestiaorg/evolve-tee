@@ -13,6 +13,7 @@ use ev_types::v1::SignedData;
 use ev_zkevm_types::programs::block::{BlockExecInput, BlockRangeExecOutput, BlockVerifier};
 use prost::Message;
 use rsp_client_executor::io::EthClientExecutorInput;
+use sp1_sdk::include_elf;
 use tendermint_light_client_verifier::types::LightBlock;
 
 pub type DefaultProvider = FillProvider<
@@ -31,6 +32,8 @@ pub type DefaultProvider = FillProvider<
     >,
     alloy_provider::RootProvider,
 >;
+
+pub const CIRCUIT_ELF: &[u8] = include_elf!("circuit");
 
 pub async fn verify_blocks(
     inputs: Vec<BlockExecInput>,
@@ -259,7 +262,6 @@ mod tests {
         let verified_attestation = attestation
             .clone()
             .verify_with_collateral(&report_data, collateral, now)
-            .await
             .expect("Failed to verify collateral");
 
         // Decode app info
@@ -272,4 +274,7 @@ mod tests {
             }
         };
     }
+
+    #[tokio::test]
+    async fn test_generate_proof() {}
 }
