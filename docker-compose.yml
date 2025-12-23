@@ -1,0 +1,10 @@
+version: '3'
+services:
+  evolve-tee:
+    image: jonas089/evolve-tee:latest
+    container_name: evolve-tee
+    ports:
+      - "8080:8080"
+    volumes:
+      # Mount dstack socket for TEE operations
+      - /var/run/dstack.sock:/var/run/dstack.sock

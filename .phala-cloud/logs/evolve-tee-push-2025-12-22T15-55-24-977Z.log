@@ -1,0 +1,40 @@
+The push refers to repository [docker.io/jonas089/evolve-tee]
+f6d56f6507bf: Unavailable
+d5338e3bbc7b: Unavailable
+ae4ce04d0e1c: Unavailable
+eec47d3d490a: Unavailable
+eec47d3d490a: Unavailable
+f6d56f6507bf: Unavailable
+d5338e3bbc7b: Unavailable
+ae4ce04d0e1c: Unavailable
+eec47d3d490a: Unavailable
+f6d56f6507bf: Unavailable
+d5338e3bbc7b: Unavailable
+ae4ce04d0e1c: Unavailable
+eec47d3d490a: Unavailable
+f6d56f6507bf: Unavailable
+d5338e3bbc7b: Unavailable
+ae4ce04d0e1c: Unavailable
+eec47d3d490a: Unavailable
+f6d56f6507bf: Unavailable
+d5338e3bbc7b: Unavailable
+ae4ce04d0e1c: Unavailable
+eec47d3d490a: Unavailable
+f6d56f6507bf: Unavailable
+d5338e3bbc7b: Unavailable
+ae4ce04d0e1c: Unavailable
+f6d56f6507bf: Unavailable
+d5338e3bbc7b: Unavailable
+ae4ce04d0e1c: Unavailable
+eec47d3d490a: Unavailable
+ae4ce04d0e1c: Unavailable
+eec47d3d490a: Layer already exists
+f6d56f6507bf: Layer already exists
+d5338e3bbc7b: Unavailable
+d5338e3bbc7b: Unavailable
+ae4ce04d0e1c: Layer already exists
+d5338e3bbc7b: Layer already exists
+latest: digest: sha256:0254968d3f0ae4e2daaf7f5f0ba2f0518f1260bfb85c0ba472c6191196735c73 size: 1053
+
+ Info -> Not all multiplatform-content is present and only the available single-platform image was pushed
+         [31msha256:9389d98a7291ff36805bfa3cb092622178538e631bc3d5aa31c98e5a62e6109e[0m -> [32msha256:0254968d3f0ae4e2daaf7f5f0ba2f0518f1260bfb85c0ba472c6191196735c73[0m
