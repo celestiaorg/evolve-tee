@@ -4,6 +4,16 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-ev-zkevm-types.workspace = true
+alloy.workspace = true
+alloy-provider.workspace = true
 anyhow.workspace = true
+celestia-rpc.workspace = true
+celestia-types.workspace = true
+ev-types.workspace = true
+ev-zkevm-types.workspace = true
+prost.workspace = true
+rsp-client-executor.workspace = true
+serde_cbor.workspace = true
 tendermint-light-client-verifier.workspace = true
+url.workspace = true
+tokio.workspace = true
