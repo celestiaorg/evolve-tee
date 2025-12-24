@@ -4936,6 +4936,7 @@ dependencies = [
  "sp1-sdk",
  "tendermint-light-client-verifier",
  "tokio",
+ "types",
  "url",
 ]
 

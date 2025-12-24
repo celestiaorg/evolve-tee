@@ -164,6 +164,8 @@ mod tests {
     use super::*;
     use dstack_verifier::Attestation;
     use serde::Deserialize;
+    use sp1_sdk::{Prover, ProverClient, SP1Stdin};
+    use types::Inputs;
 
     #[derive(Deserialize)]
     struct QuoteReport {
@@ -276,5 +278,41 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_generate_proof() {}
+    async fn test_generate_proof() {
+        let fixture_path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/quote-report.json");
+        let json_content =
+            std::fs::read_to_string(fixture_path).expect("Failed to read fixture file");
+        let report: QuoteReport =
+            serde_json::from_str(&json_content).expect("Failed to parse JSON");
+
+        // Decode the hex-encoded quote
+        let quote = hex::decode(&report.quote).expect("Failed to decode quote hex");
+        let event_log = report.event_log.as_bytes();
+
+        let collateral = dcap_qvl::collateral::get_collateral(
+            "https://pccs.phala.network/sgx/certification/v4/",
+            &quote,
+        )
+        .await
+        .expect("Failed to get collateral");
+
+        let now = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .expect("Failed to get current time")
+            .as_secs();
+        let inputs: Inputs = Inputs {
+            quote,
+            event_log: event_log.to_vec(),
+            report_data: report.report_data.as_bytes().to_vec(),
+            collateral: collateral,
+            now,
+        };
+
+        let prover_client = ProverClient::from_env();
+        let (pk, _vk) = prover_client.setup(CIRCUIT_ELF);
+        let mut stdin = SP1Stdin::new();
+        stdin.write(&inputs);
+        let proof = prover_client.prove(&pk, &stdin).run().unwrap();
+        println!("Proof: {}", hex::encode(proof.bytes()));
+    }
 }
