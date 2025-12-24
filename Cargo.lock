@@ -2313,6 +2313,7 @@ name = "circuit"
 version = "0.1.0"
 dependencies = [
  "dcap-qvl",
+ "serde_json",
  "sp1-zkvm",
  "types",
 ]
@@ -10010,7 +10011,10 @@ name = "types"
 version = "0.1.0"
 dependencies = [
  "dcap-qvl",
+ "hex",
  "serde",
+ "serde_bytes",
+ "sha2 0.10.9",
 ]
 
 [[package]]
