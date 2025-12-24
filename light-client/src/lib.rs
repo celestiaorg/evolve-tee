@@ -312,7 +312,8 @@ mod tests {
         let (pk, _vk) = prover_client.setup(CIRCUIT_ELF);
         let mut stdin = SP1Stdin::new();
         stdin.write(&inputs);
-        let proof = prover_client.prove(&pk, &stdin).run().unwrap();
-        println!("Proof: {}", hex::encode(proof.bytes()));
+        let proof = prover_client.prove(&pk, &stdin).compressed().run().unwrap();
+        println!("Proof generated successfully");
+        println!("Public values: {:?}", proof.public_values);
     }
 }
