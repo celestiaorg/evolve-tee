@@ -5,5 +5,6 @@ edition = "2024"
 
 [dependencies]
 sp1-zkvm.workspace = true
-dstack-verifier.workspace = true
+#dstack-verifier.workspace = true
 types.workspace = true
+dcap-qvl.workspace = true

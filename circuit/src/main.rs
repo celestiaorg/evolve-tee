@@ -1,12 +1,12 @@
 #![no_main]
 
 sp1_zkvm::entrypoint!(main);
-use dstack_verifier::Attestation;
+//use dstack_verifier::Attestation;
 use types::Inputs;
 
 pub fn main() {
     let inputs: Inputs = sp1_zkvm::io::read::<Inputs>();
-    let attestation =
+    /*let attestation =
         Attestation::new(inputs.quote, inputs.event_log).expect("Failed to create attestation");
     let verified_attestation = attestation
         .clone()
@@ -23,6 +23,8 @@ pub fn main() {
         Err(e) => {
             panic!("Failed to decode app info: {}", e);
         }
-    };
+    };*/
+    let verified_report = dcap_qvl::verify::verify(&inputs.quote, &inputs.collateral, inputs.now)
+        .expect("Failed to verify attestation");
     sp1_zkvm::io::commit_slice(Vec::new().as_slice());
 }

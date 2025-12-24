@@ -24,6 +24,7 @@ hex.workspace = true
 serde_json.workspace = true
 serde.workspace = true
 dcap-qvl.workspace = true
+sp1-sdk.workspace = true
 
 [build-dependencies]
 sp1-build.workspace = true
