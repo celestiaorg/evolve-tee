@@ -1,7 +1,6 @@
 #![no_main]
 
 sp1_zkvm::entrypoint!(main);
-//use dstack_verifier::Attestation;
 use types::{
     EnclaveReport, EventLog, Inputs, Report, TDReport10, TDReport15, VerifiedReport,
     replay_event_logs, validate_tcb,

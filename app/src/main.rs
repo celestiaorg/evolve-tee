@@ -1,6 +1,5 @@
 use axum::{routing::get, Json, Router};
 use dstack_sdk::dstack_client::DstackClient;
-use dstack_types::VmConfig;
 use dstack_verifier::Attestation;
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
@@ -30,7 +29,6 @@ async fn get_attestation() -> Json<Value> {
     // test verification logic
     let quote = hex::decode(&result.quote).unwrap();
     let event_log = result.event_log.as_bytes();
-    let vm_config: VmConfig = serde_json::from_str(&result.vm_config).unwrap();
 
     let attestation = Attestation::new(quote, event_log.to_vec()).unwrap();
 
