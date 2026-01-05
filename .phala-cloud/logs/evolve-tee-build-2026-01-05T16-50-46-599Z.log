@@ -1,0 +1,110 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.12kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/debian:bookworm-slim
+#2 ...
+
+#3 [auth] library/rust:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#4 [auth] library/debian:pull token for registry-1.docker.io
+#4 DONE 0.0s
+
+#5 [internal] load metadata for docker.io/library/rust:1.88
+#5 DONE 1.1s
+
+#2 [internal] load metadata for docker.io/library/debian:bookworm-slim
+#2 DONE 1.1s
+
+#6 [internal] load .dockerignore
+#6 transferring context: 2B done
+#6 DONE 0.0s
+
+#7 [stage-1 1/4] FROM docker.io/library/debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c
+#7 resolve docker.io/library/debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c done
+#7 DONE 0.0s
+
+#8 [builder  1/19] FROM docker.io/library/rust:1.88@sha256:af306cfa71d987911a781c37b59d7d67d934f49684058f96cf72079c3626bfe0
+#8 resolve docker.io/library/rust:1.88@sha256:af306cfa71d987911a781c37b59d7d67d934f49684058f96cf72079c3626bfe0 done
+#8 DONE 0.0s
+
+#9 [internal] load build context
+#9 transferring context: 6.73MB 0.0s done
+#9 DONE 0.1s
+
+#10 [builder  9/19] COPY light-client/Cargo.toml ./light-client/
+#10 CACHED
+
+#11 [builder 16/19] RUN cargo build --release -p evolve-tee && rm -rf app/src light-client/src
+#11 CACHED
+
+#12 [builder 18/19] COPY light-client/src ./light-client/src
+#12 CACHED
+
+#13 [stage-1 3/4] WORKDIR /app
+#13 CACHED
+
+#14 [builder 12/19] COPY ev-batch-elf ./
+#14 CACHED
+
+#15 [builder  6/19] COPY Cargo.toml Cargo.lock ./
+#15 CACHED
+
+#16 [builder 10/19] COPY types/Cargo.toml ./types/
+#16 CACHED
+
+#17 [builder 19/19] RUN touch app/src/main.rs light-client/src/lib.rs && cargo build --release -p evolve-tee
+#17 CACHED
+
+#18 [builder  7/19] COPY app/Cargo.toml ./app/
+#18 CACHED
+
+#19 [builder  2/19] RUN apt-get update && apt-get install -y     clang     libclang-dev     && rm -rf /var/lib/apt/lists/*
+#19 CACHED
+
+#20 [builder  5/19] WORKDIR /build
+#20 CACHED
+
+#21 [stage-1 2/4] RUN apt-get update && apt-get install -y     ca-certificates     && rm -rf /var/lib/apt/lists/*
+#21 CACHED
+
+#22 [builder 11/19] COPY light-client/build.rs ./light-client/
+#22 CACHED
+
+#23 [builder 14/19] COPY types/src ./types/src
+#23 CACHED
+
+#24 [builder 13/19] COPY circuit/src ./circuit/src
+#24 CACHED
+
+#25 [builder 17/19] COPY app/src ./app/src
+#25 CACHED
+
+#26 [builder  4/19] RUN curl -L https://sp1up.succinct.xyz | bash &&     ~/.sp1/bin/sp1up --version 5.2.2
+#26 CACHED
+
+#27 [builder  3/19] RUN curl -fsSL https://go.dev/dl/go1.22.5.linux-amd64.tar.gz | tar -C /usr/local -xzf -
+#27 CACHED
+
+#28 [builder 15/19] RUN mkdir -p app/src && echo "fn main() {}" > app/src/main.rs &&     mkdir -p light-client/src && echo "" > light-client/src/lib.rs
+#28 CACHED
+
+#29 [builder  8/19] COPY circuit/Cargo.toml ./circuit/
+#29 CACHED
+
+#30 [stage-1 4/4] COPY --from=builder /build/target/release/evolve-tee .
+#30 CACHED
+
+#31 exporting to image
+#31 exporting layers done
+#31 exporting manifest sha256:79d5253fd42bc3c2cf1bd8c69ce27b4972bd42f182f6f4abfc1381ede1cf97d5 done
+#31 exporting config sha256:b19a0645d8f9657ae201df2658f6ec9f2819d001e625f88becbff9d78a0ffd4d done
+#31 exporting attestation manifest sha256:078d1eef60fb03738f745885c2674dd8d025df74bfbaa4d7e58c726dde33a8a0 done
+#31 exporting manifest list sha256:4c98c1eb10a2242b38cc3c6a6d691c36d20fb27c91ece1e636c55f7a315d953c done
+#31 naming to docker.io/jonas089/evolve-tee:latest done
+#31 DONE 0.0s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/ly9wshqyp3nr94ceu9229lzq7

@@ -50,7 +50,7 @@ pub async fn verify_blocks(
         .map_err(|e| anyhow!("{e}"))?)
 }
 
-async fn build_block_input(
+pub async fn build_block_input(
     chain_context: Arc<ChainContext>,
     height: u64,
     trusted_height: &mut u64,
@@ -158,7 +158,7 @@ async fn generate_executor_input(
 
 /// Fetches a Tendermint LightBlock at the given height.
 /// This is used for light client verification in the zkVM.
-async fn get_light_block(client: &TendermintHttpClient, height: u64) -> Result<LightBlock> {
+pub async fn get_light_block(client: &TendermintHttpClient, height: u64) -> Result<LightBlock> {
     let height = Height::try_from(height).context("invalid height")?;
 
     // Fetch peer ID from the node status
@@ -234,7 +234,7 @@ mod tests {
     use ev_prover::{config::Config, prover::chain::ChainContext};
     use ev_zkevm_types::programs::block::{BatchExecInput, State};
     use serde::Deserialize;
-    use sp1_sdk::{HashableKey, ProverClient, SP1Stdin};
+    use sp1_sdk::{ProverClient, SP1Stdin};
     use types::Inputs;
 
     #[derive(Deserialize)]

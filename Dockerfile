@@ -7,25 +7,51 @@ RUN apt-get update && apt-get install -y \
     libclang-dev \
     && rm -rf /var/lib/apt/lists/*
 
+# Install Go 1.22+ (required by sp1-recursion-gnark-ffi)
+RUN curl -fsSL https://go.dev/dl/go1.22.5.linux-amd64.tar.gz | tar -C /usr/local -xzf -
+ENV PATH="/usr/local/go/bin:${PATH}"
+
+# Install SP1 toolchain (required by ev-prover build script)
+RUN curl -L https://sp1up.succinct.xyz | bash && \
+    ~/.sp1/bin/sp1up --version 5.2.2
+ENV PATH="/root/.sp1/bin:${PATH}"
+
 WORKDIR /build
 
 # Copy workspace manifest and lock file
 COPY Cargo.toml Cargo.lock ./
 
-# Copy app manifest
+# Copy all workspace member manifests
 COPY app/Cargo.toml ./app/
+COPY circuit/Cargo.toml ./circuit/
+COPY light-client/Cargo.toml ./light-client/
+COPY types/Cargo.toml ./types/
 
-# Create a dummy main.rs to cache dependencies
-RUN mkdir -p app/src && echo "fn main() {}" > app/src/main.rs
+# Copy build.rs for light-client (needed for sp1-build)
+COPY light-client/build.rs ./light-client/
+
+# Copy ev-batch-elf (needed by light-client include_bytes!)
+COPY ev-batch-elf ./
+
+# Copy circuit source (needed by light-client build.rs to compile the circuit ELF)
+COPY circuit/src ./circuit/src
+
+# Copy types source (needed by circuit during SP1 compilation)
+COPY types/src ./types/src
+
+# Create dummy sources for app and light-client to cache dependencies
+RUN mkdir -p app/src && echo "fn main() {}" > app/src/main.rs && \
+    mkdir -p light-client/src && echo "" > light-client/src/lib.rs
 
 # Build dependencies (this layer will be cached)
-RUN cargo build --release && rm -rf app/src
+RUN cargo build --release -p evolve-tee && rm -rf app/src light-client/src
 
-# Copy actual source code
+# Copy actual source code for remaining workspace members
 COPY app/src ./app/src
+COPY light-client/src ./light-client/src
 
 # Build the actual application
-RUN touch app/src/main.rs && cargo build --release
+RUN touch app/src/main.rs light-client/src/lib.rs && cargo build --release -p evolve-tee
 
 # Runtime stage
 FROM debian:bookworm-slim
@@ -38,6 +64,9 @@ WORKDIR /app
 
 # Copy the binary from builder
 COPY --from=builder /build/target/release/evolve-tee .
+
+# Copy ev-prover config files
+COPY config/ /root/.ev-prover/config/
 
 EXPOSE 8080
 
