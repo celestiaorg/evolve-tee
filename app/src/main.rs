@@ -6,10 +6,12 @@ use axum::{routing::get, Json, Router};
 use celestia_grpc_client::{types::ClientConfig, CelestiaIsmClient, QueryIsmRequest};
 use celestia_rpc::HeaderClient;
 use dstack_sdk::dstack_client::DstackClient;
-use dstack_verifier::Attestation;
 use ev_prover::{config::Config, prover::chain::ChainContext};
 use ev_zkevm_types::programs::block::{BatchExecInput, State};
-use light_client::{build_block_input, get_light_block, BATCH_ELF};
+use futures::future::try_join_all;
+use light_client::{
+    build_block_input_from_prefetched, get_light_block, prefetch_celestia_data, BATCH_ELF,
+};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use sp1_sdk::{ProverClient, SP1Stdin};
@@ -153,11 +155,31 @@ async fn get_attestation() -> Json<Value> {
         trusted_celestia_height + 1,
         celestia_head
     );
+
+    // Phase 1: Prefetch all Celestia data in parallel
+    let heights: Vec<u64> = (trusted_celestia_height + 1..=celestia_head).collect();
+    println!("  Prefetching {} blocks in parallel...", heights.len());
+
+    let prefetch_futures = heights.iter().map(|&h| {
+        let ctx = chain_context.clone();
+        async move { prefetch_celestia_data(ctx, h).await.map(|data| (h, data)) }
+    });
+
+    let prefetched: Vec<_> = match try_join_all(prefetch_futures).await {
+        Ok(results) => results,
+        Err(e) => {
+            return Json(
+                json!({"error": format!("Failed to prefetch Celestia data: {}", e), "step": 6}),
+            )
+        }
+    };
+
+    // Phase 2: Process sequentially to handle trusted state updates
     let mut block_inputs = Vec::new();
-    for block_number in trusted_celestia_height + 1..=celestia_head {
-        match build_block_input(
+    for (block_number, prefetched_data) in prefetched {
+        match build_block_input_from_prefetched(
             chain_context.clone(),
-            block_number,
+            prefetched_data,
             &mut trusted_height,
             &mut trusted_root,
         )

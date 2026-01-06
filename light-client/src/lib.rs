@@ -5,7 +5,7 @@ use alloy_provider::{Provider, fillers::FillProvider};
 use anyhow::{Context, Result, anyhow};
 use celestia_rpc::{BlobClient, HeaderClient, ShareClient};
 
-use celestia_types::{Blob, Height, ValidatorSet, nmt::NamespaceProof};
+use celestia_types::{Blob, ExtendedHeader, Height, ValidatorSet, nmt::NamespaceProof};
 use ev_prover::prover::chain::ChainContext;
 use ev_types::v1::SignedData;
 use ev_zkevm_types::programs::block::{BlockExecInput, BlockRangeExecOutput, BlockVerifier};
@@ -48,6 +48,124 @@ pub async fn verify_blocks(
     Ok(verifier
         .verify_range(inputs, trusted_light_block, new_light_block)
         .map_err(|e| anyhow!("{e}"))?)
+}
+
+/// Prefetched Celestia data that can be fetched in parallel
+pub struct PrefetchedCelestiaData {
+    pub height: u64,
+    pub blobs: Vec<Blob>,
+    pub extended_header: ExtendedHeader,
+    pub proofs: Vec<NamespaceProof>,
+}
+
+/// Prefetch Celestia data for a given height. This can be called in parallel
+/// for multiple heights since it only performs network fetches.
+pub async fn prefetch_celestia_data(
+    chain_context: Arc<ChainContext>,
+    height: u64,
+) -> Result<PrefetchedCelestiaData> {
+    let blobs: Vec<Blob> = chain_context
+        .celestia_client()
+        .blob_get_all(height, &[chain_context.namespace()])
+        .await?
+        .unwrap_or_default();
+    let extended_header = chain_context
+        .celestia_client()
+        .header_get_by_height(height)
+        .await?;
+    let namespace_data = chain_context
+        .celestia_client()
+        .share_get_namespace_data(&extended_header, chain_context.namespace())
+        .await?;
+    let proofs: Vec<NamespaceProof> = namespace_data.rows.into_iter().map(|r| r.proof).collect();
+
+    Ok(PrefetchedCelestiaData {
+        height,
+        blobs,
+        extended_header,
+        proofs,
+    })
+}
+
+/// Build block input from prefetched Celestia data. This handles the sequential
+/// trusted state updates and must be called in order.
+pub async fn build_block_input_from_prefetched(
+    chain_context: Arc<ChainContext>,
+    prefetched: PrefetchedCelestiaData,
+    trusted_height: &mut u64,
+    trusted_root: &mut FixedBytes<32>,
+) -> Result<BlockExecInput> {
+    let PrefetchedCelestiaData {
+        height: _,
+        blobs,
+        extended_header,
+        proofs,
+    } = prefetched;
+
+    let mut executor_inputs: Vec<EthClientExecutorInput> = Vec::new();
+
+    if blobs.is_empty() {
+        return Ok(BlockExecInput {
+            header_raw: serde_cbor::to_vec(&extended_header.header)?,
+            dah: extended_header.dah,
+            blobs_raw: serde_cbor::to_vec(&blobs)?,
+            pub_key: chain_context.pub_key_bytes(),
+            namespace: chain_context.namespace(),
+            proofs,
+            executor_inputs: vec![],
+            trusted_height: *trusted_height,
+            trusted_root: *trusted_root,
+        });
+    }
+
+    // Process blobs to extract executor inputs
+    let mut last_height = 0;
+    for blob in blobs.as_slice() {
+        let signed_data = match SignedData::decode(blob.data.as_slice()) {
+            Ok(data) => data,
+            Err(_) => continue,
+        };
+        let data = signed_data.data.ok_or_else(|| anyhow!("Data not found"))?;
+        let height = data
+            .metadata
+            .ok_or_else(|| anyhow!("Metadata not found"))?
+            .height;
+        last_height = height;
+
+        let client_executor_input = generate_executor_input(
+            chain_context.chain_spec(),
+            chain_context.genesis(),
+            chain_context.evm_provider(),
+            height,
+        )
+        .await?;
+        executor_inputs.push(client_executor_input);
+    }
+
+    // Construct the block execution input
+    let input = BlockExecInput {
+        header_raw: serde_cbor::to_vec(&extended_header.header)?,
+        dah: extended_header.dah,
+        blobs_raw: serde_cbor::to_vec(&blobs)?,
+        pub_key: chain_context.pub_key_bytes(),
+        namespace: chain_context.namespace(),
+        proofs,
+        executor_inputs: executor_inputs.clone(),
+        trusted_height: *trusted_height,
+        trusted_root: *trusted_root,
+    };
+
+    // Update trusted state based on the last EVM block processed
+    let block = chain_context
+        .evm_provider()
+        .get_block_by_number(last_height.into())
+        .await?
+        .ok_or_else(|| anyhow!("Block {last_height} not found"))?;
+
+    *trusted_height = last_height;
+    *trusted_root = block.header.state_root;
+
+    Ok(input)
 }
 
 pub async fn build_block_input(

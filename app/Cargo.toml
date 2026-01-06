@@ -15,6 +15,7 @@ dstack-sdk.workspace = true
 dstack-types.workspace = true
 dstack-verifier.workspace = true
 ev-prover.workspace = true
+futures.workspace = true
 ev-zkevm-types.workspace = true
 hex.workspace = true
 light-client.workspace = true

@@ -8,7 +8,11 @@ use celestia_rpc::HeaderClient;
 use dstack_verifier::Attestation;
 use ev_prover::{config::Config, prover::chain::ChainContext};
 use ev_zkevm_types::programs::block::{BatchExecInput, State};
-use light_client::{BATCH_ELF, CIRCUIT_ELF, build_block_input, get_light_block};
+use futures::future::try_join_all;
+use light_client::{
+    BATCH_ELF, CIRCUIT_ELF, build_block_input_from_prefetched, get_light_block,
+    prefetch_celestia_data,
+};
 use serde::Deserialize;
 use sp1_sdk::{ProverClient, SP1Stdin};
 use tendermint_rpc::HttpClient as TendermintHttpClient;
@@ -79,16 +83,31 @@ async fn test_compute_evolve_state_root() {
         .unwrap()
         .height()
         .value();
-    let mut block_inputs = Vec::new();
     println!(
         "Building block inputs from {} to {}...",
         trusted_celestia_height + 1,
         celestia_head
     );
-    for block_number in trusted_celestia_height + 1..=celestia_head {
-        let input = build_block_input(
+
+    // Phase 1: Prefetch all Celestia data in parallel
+    let heights: Vec<u64> = (trusted_celestia_height + 1..=celestia_head).collect();
+    println!("  Prefetching {} blocks in parallel...", heights.len());
+
+    let prefetch_futures = heights.iter().map(|&h| {
+        let ctx = chain_context.clone();
+        async move { prefetch_celestia_data(ctx, h).await.map(|data| (h, data)) }
+    });
+
+    let prefetched: Vec<_> = try_join_all(prefetch_futures)
+        .await
+        .expect("Failed to prefetch Celestia data");
+
+    // Phase 2: Process sequentially to handle trusted state updates
+    let mut block_inputs = Vec::new();
+    for (_block_number, prefetched_data) in prefetched {
+        let input = build_block_input_from_prefetched(
             chain_context.clone(),
-            block_number,
+            prefetched_data,
             &mut trusted_height,
             &mut trusted_root,
         )
@@ -96,6 +115,7 @@ async fn test_compute_evolve_state_root() {
         .unwrap();
         block_inputs.push(input);
     }
+    println!("Block inputs: {:?}", block_inputs.len());
     println!("Done building block inputs");
 
     // get light blocks

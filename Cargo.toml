@@ -35,6 +35,7 @@ rsp-primitives = { git = "https://github.com/succinctlabs/rsp.git", tag = "reth-
 rsp-rpc-db = { git = "https://github.com/succinctlabs/rsp.git", tag = "reth-1.5.0" }
 
 dotenvy = "0.15.7"
+futures = "0.3"
 rustls = { version = "0.23", features = ["aws_lc_rs"] }
 # dstack dependencies
 dstack-sdk = { git = "https://github.com/jonas089/dstack", default-features = false }
