@@ -8,9 +8,8 @@ use celestia_rpc::HeaderClient;
 use dstack_sdk::dstack_client::DstackClient;
 use ev_prover::{config::Config, prover::chain::ChainContext};
 use ev_zkevm_types::programs::block::State;
-use futures::future::try_join_all;
 use light_client::{
-    build_block_input_from_prefetched, get_light_block, prefetch_celestia_data, verify_blocks,
+    build_block_input_from_prefetched, get_light_block, prefetch_celestia_data_batch, verify_blocks,
 };
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
@@ -161,22 +160,22 @@ async fn get_attestation() -> Json<Value> {
     }
 
     // Step 6: Build block inputs
+    let num_blocks = celestia_head - trusted_celestia_height;
     println!(
-        "Step 6: Building block inputs from {} to {}...",
+        "Step 6: Building block inputs from {} to {} ({} blocks)...",
         trusted_celestia_height + 1,
-        celestia_head
+        celestia_head,
+        num_blocks
     );
 
-    // Phase 1: Prefetch all Celestia data in parallel
-    let heights: Vec<u64> = (trusted_celestia_height + 1..=celestia_head).collect();
-    println!("  Prefetching {} blocks in parallel...", heights.len());
-
-    let prefetch_futures = heights.iter().map(|&h| {
-        let ctx = chain_context.clone();
-        async move { prefetch_celestia_data(ctx, h).await.map(|data| (h, data)) }
-    });
-
-    let prefetched: Vec<_> = match try_join_all(prefetch_futures).await {
+    // Batch prefetch all Celestia data (uses header_get_range_by_height for efficiency)
+    let prefetched = match prefetch_celestia_data_batch(
+        chain_context.clone(),
+        trusted_celestia_height + 1,
+        celestia_head,
+    )
+    .await
+    {
         Ok(results) => results,
         Err(e) => {
             return Json(
@@ -185,9 +184,10 @@ async fn get_attestation() -> Json<Value> {
         }
     };
 
-    // Phase 2: Process sequentially to handle trusted state updates
+    // Process sequentially to handle trusted state updates
     let mut block_inputs = Vec::new();
-    for (block_number, prefetched_data) in prefetched {
+    for prefetched_data in prefetched {
+        let height = prefetched_data.height;
         match build_block_input_from_prefetched(
             chain_context.clone(),
             prefetched_data,
@@ -199,7 +199,7 @@ async fn get_attestation() -> Json<Value> {
             Ok(input) => block_inputs.push(input),
             Err(e) => {
                 return Json(
-                    json!({"error": format!("Failed to build block input {}: {}", block_number, e), "step": 6}),
+                    json!({"error": format!("Failed to build block input {}: {}", height, e), "step": 6}),
                 )
             }
         }

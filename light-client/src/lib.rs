@@ -37,7 +37,7 @@ pub type DefaultProvider = FillProvider<
 >;
 
 pub const CIRCUIT_ELF: &[u8] = include_elf!("circuit");
-pub const BATCH_ELF: &[u8] = include_bytes!("../fixtures/batch.elf");
+pub const BATCH_ELF: &[u8] = include_bytes!("../fixtures/ev-batch-elf");
 
 pub async fn verify_blocks(
     inputs: Vec<BlockExecInput>,
@@ -87,6 +87,79 @@ pub async fn prefetch_celestia_data(
     })
 }
 
+/// Batch prefetch Celestia data for a range of heights.
+/// Uses header_get_range_by_height to fetch all headers in one request,
+/// then fetches blobs and proofs in parallel.
+/// This reduces the number of RPC calls from 3N to 2N+1 (1 header range + N blobs + N proofs).
+pub async fn prefetch_celestia_data_batch(
+    chain_context: Arc<ChainContext>,
+    from_height: u64,
+    to_height: u64,
+) -> Result<Vec<PrefetchedCelestiaData>> {
+    use futures::future::try_join_all;
+
+    // First, get the starting header
+    let from_header = chain_context
+        .celestia_client()
+        .header_get_by_height(from_height)
+        .await?;
+
+    // Fetch all headers in one request (instead of N individual requests)
+    // Note: header_get_range_by_height returns headers from (from.height + 1) to (to - 1),
+    let headers: Vec<ExtendedHeader> = if from_height == to_height {
+        vec![from_header]
+    } else {
+        let mut headers = vec![from_header.clone()];
+        let range_headers = chain_context
+            .celestia_client()
+            .header_get_range_by_height(&from_header, to_height + 1)
+            .await?;
+        headers.extend(range_headers);
+        headers
+    };
+
+    // Create a map of height -> header for easy lookup
+    let header_map: HashMap<u64, ExtendedHeader> = headers
+        .into_iter()
+        .map(|h| (h.height().value(), h))
+        .collect();
+
+    // Fetch blobs and proofs in parallel for each height
+    let heights: Vec<u64> = (from_height..=to_height).collect();
+    let fetch_futures = heights.into_iter().map(|height| {
+        let ctx = chain_context.clone();
+        let header = header_map.get(&height).cloned();
+        async move {
+            let header = header.ok_or_else(|| anyhow!("Header not found for height {}", height))?;
+            let namespace = ctx.namespace();
+
+            // Fetch blobs
+            let blobs: Vec<Blob> = ctx
+                .celestia_client()
+                .blob_get_all(height, &[namespace])
+                .await?
+                .unwrap_or_default();
+
+            // Fetch namespace data for proofs
+            let namespace_data = ctx
+                .celestia_client()
+                .share_get_namespace_data(&header, namespace)
+                .await?;
+            let proofs: Vec<NamespaceProof> =
+                namespace_data.rows.into_iter().map(|r| r.proof).collect();
+
+            Ok::<_, anyhow::Error>(PrefetchedCelestiaData {
+                height,
+                blobs,
+                extended_header: header,
+                proofs,
+            })
+        }
+    });
+
+    try_join_all(fetch_futures).await
+}
+
 /// Build block input from prefetched Celestia data. This handles the sequential
 /// trusted state updates and must be called in order.
 pub async fn build_block_input_from_prefetched(
@@ -95,14 +168,14 @@ pub async fn build_block_input_from_prefetched(
     trusted_height: &mut u64,
     trusted_root: &mut FixedBytes<32>,
 ) -> Result<BlockExecInput> {
+    use futures::future::try_join_all;
+
     let PrefetchedCelestiaData {
         height: _,
         blobs,
         extended_header,
         proofs,
     } = prefetched;
-
-    let mut executor_inputs: Vec<EthClientExecutorInput> = Vec::new();
 
     if blobs.is_empty() {
         return Ok(BlockExecInput {
@@ -118,7 +191,8 @@ pub async fn build_block_input_from_prefetched(
         });
     }
 
-    // Process blobs to extract executor inputs
+    // First pass: Extract heights from all blobs
+    let mut heights = Vec::new();
     let mut last_height = 0;
     for blob in blobs.as_slice() {
         let signed_data = match SignedData::decode(blob.data.as_slice()) {
@@ -131,16 +205,19 @@ pub async fn build_block_input_from_prefetched(
             .ok_or_else(|| anyhow!("Metadata not found"))?
             .height;
         last_height = height;
-
-        let client_executor_input = generate_executor_input(
-            chain_context.chain_spec(),
-            chain_context.genesis(),
-            chain_context.evm_provider(),
-            height,
-        )
-        .await?;
-        executor_inputs.push(client_executor_input);
+        heights.push(height);
     }
+
+    // Second pass: Generate all executor inputs in parallel
+    // This allows all RPC calls to happen concurrently instead of sequentially
+    let executor_futures = heights.into_iter().map(|height| {
+        let chain_spec = chain_context.chain_spec();
+        let genesis = chain_context.genesis();
+        let provider = chain_context.evm_provider();
+        async move { generate_executor_input(chain_spec, genesis, provider, height).await }
+    });
+
+    let executor_inputs = try_join_all(executor_futures).await?;
 
     // Construct the block execution input
     let input = BlockExecInput {

@@ -31,7 +31,7 @@ COPY types/Cargo.toml ./types/
 COPY light-client/build.rs ./light-client/
 
 # Copy ev-batch-elf (needed by light-client include_bytes!)
-COPY ev-batch-elf ./
+COPY light-client/fixtures/ev-batch-elf ./
 
 # Copy circuit source (needed by light-client build.rs to compile the circuit ELF)
 COPY circuit/src ./circuit/src
