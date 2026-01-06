@@ -19,6 +19,8 @@ use sp1_sdk::include_elf;
 use tendermint_light_client_verifier::types::{LightBlock, SignedHeader};
 use tendermint_rpc::{Client as TendermintClient, HttpClient as TendermintHttpClient};
 
+const MAX_CONCURRENCY: usize = 100;
+
 pub type DefaultProvider = FillProvider<
     alloy_provider::fillers::JoinFill<
         alloy_provider::Identity,
@@ -96,7 +98,7 @@ pub async fn prefetch_celestia_data_batch(
     from_height: u64,
     to_height: u64,
 ) -> Result<Vec<PrefetchedCelestiaData>> {
-    use futures::future::try_join_all;
+    use futures::stream::{StreamExt, TryStreamExt};
 
     // First, get the starting header
     let from_header = chain_context
@@ -124,40 +126,46 @@ pub async fn prefetch_celestia_data_batch(
         .map(|h| (h.height().value(), h))
         .collect();
 
-    // Fetch blobs and proofs in parallel for each height
+    // Fetch blobs and proofs with limited concurrency (100 parallel requests at a time)
+    // Using `buffered` instead of `buffer_unordered` to preserve order
     let heights: Vec<u64> = (from_height..=to_height).collect();
-    let fetch_futures = heights.into_iter().map(|height| {
-        let ctx = chain_context.clone();
-        let header = header_map.get(&height).cloned();
-        async move {
-            let header = header.ok_or_else(|| anyhow!("Header not found for height {}", height))?;
-            let namespace = ctx.namespace();
+    let prefetched: Vec<PrefetchedCelestiaData> = futures::stream::iter(heights)
+        .map(|height| {
+            let ctx = chain_context.clone();
+            let header = header_map.get(&height).cloned();
+            async move {
+                let header =
+                    header.ok_or_else(|| anyhow!("Header not found for height {}", height))?;
+                let namespace = ctx.namespace();
 
-            // Fetch blobs
-            let blobs: Vec<Blob> = ctx
-                .celestia_client()
-                .blob_get_all(height, &[namespace])
-                .await?
-                .unwrap_or_default();
+                // Fetch blobs
+                let blobs: Vec<Blob> = ctx
+                    .celestia_client()
+                    .blob_get_all(height, &[namespace])
+                    .await?
+                    .unwrap_or_default();
 
-            // Fetch namespace data for proofs
-            let namespace_data = ctx
-                .celestia_client()
-                .share_get_namespace_data(&header, namespace)
-                .await?;
-            let proofs: Vec<NamespaceProof> =
-                namespace_data.rows.into_iter().map(|r| r.proof).collect();
+                // Fetch namespace data for proofs
+                let namespace_data = ctx
+                    .celestia_client()
+                    .share_get_namespace_data(&header, namespace)
+                    .await?;
+                let proofs: Vec<NamespaceProof> =
+                    namespace_data.rows.into_iter().map(|r| r.proof).collect();
 
-            Ok::<_, anyhow::Error>(PrefetchedCelestiaData {
-                height,
-                blobs,
-                extended_header: header,
-                proofs,
-            })
-        }
-    });
+                Ok::<_, anyhow::Error>(PrefetchedCelestiaData {
+                    height,
+                    blobs,
+                    extended_header: header,
+                    proofs,
+                })
+            }
+        })
+        .buffered(MAX_CONCURRENCY)
+        .try_collect()
+        .await?;
 
-    try_join_all(fetch_futures).await
+    Ok(prefetched)
 }
 
 /// Build block input from prefetched Celestia data. This handles the sequential
@@ -168,8 +176,7 @@ pub async fn build_block_input_from_prefetched(
     trusted_height: &mut u64,
     trusted_root: &mut FixedBytes<32>,
 ) -> Result<BlockExecInput> {
-    use futures::future::try_join_all;
-
+    #[allow(unused_variables)]
     let PrefetchedCelestiaData {
         height: _,
         blobs,
@@ -208,106 +215,21 @@ pub async fn build_block_input_from_prefetched(
         heights.push(height);
     }
 
-    // Second pass: Generate all executor inputs in parallel
-    // This allows all RPC calls to happen concurrently instead of sequentially
-    let executor_futures = heights.into_iter().map(|height| {
-        let chain_spec = chain_context.chain_spec();
-        let genesis = chain_context.genesis();
-        let provider = chain_context.evm_provider();
-        async move { generate_executor_input(chain_spec, genesis, provider, height).await }
-    });
+    // Second pass: Generate all executor inputs in parallel with limited concurrency
+    // This allows RPC calls to happen concurrently instead of sequentially,
+    // while preventing connection pool exhaustion
+    use futures::stream::{StreamExt, TryStreamExt};
 
-    let executor_inputs = try_join_all(executor_futures).await?;
-
-    // Construct the block execution input
-    let input = BlockExecInput {
-        header_raw: serde_cbor::to_vec(&extended_header.header)?,
-        dah: extended_header.dah,
-        blobs_raw: serde_cbor::to_vec(&blobs)?,
-        pub_key: chain_context.pub_key_bytes(),
-        namespace: chain_context.namespace(),
-        proofs,
-        executor_inputs: executor_inputs.clone(),
-        trusted_height: *trusted_height,
-        trusted_root: *trusted_root,
-    };
-
-    // Update trusted state based on the last EVM block processed
-    let block = chain_context
-        .evm_provider()
-        .get_block_by_number(last_height.into())
-        .await?
-        .ok_or_else(|| anyhow!("Block {last_height} not found"))?;
-
-    *trusted_height = last_height;
-    *trusted_root = block.header.state_root;
-
-    Ok(input)
-}
-
-pub async fn build_block_input(
-    chain_context: Arc<ChainContext>,
-    height: u64,
-    trusted_height: &mut u64,
-    trusted_root: &mut FixedBytes<32>,
-) -> Result<BlockExecInput> {
-    let blobs: Vec<Blob> = chain_context
-        .celestia_client()
-        .blob_get_all(height, &[chain_context.namespace()])
-        .await?
-        .unwrap_or_default();
-    let extended_header = chain_context
-        .celestia_client()
-        .header_get_by_height(height)
+    let executor_inputs: Vec<EthClientExecutorInput> = futures::stream::iter(heights)
+        .map(|height| {
+            let chain_spec = chain_context.chain_spec();
+            let genesis = chain_context.genesis();
+            let provider = chain_context.evm_provider();
+            async move { generate_executor_input(chain_spec, genesis, provider, height).await }
+        })
+        .buffered(MAX_CONCURRENCY)
+        .try_collect()
         .await?;
-    let namespace_data = chain_context
-        .celestia_client()
-        .share_get_namespace_data(&extended_header, chain_context.namespace())
-        .await?;
-    let mut proofs: Vec<NamespaceProof> = Vec::new();
-    for row in namespace_data.rows {
-        proofs.push(row.proof);
-    }
-
-    let mut executor_inputs: Vec<EthClientExecutorInput> = Vec::new();
-
-    if blobs.is_empty() {
-        return Ok(BlockExecInput {
-            header_raw: serde_cbor::to_vec(&extended_header.header)?,
-            dah: extended_header.dah,
-            blobs_raw: serde_cbor::to_vec(&blobs)?,
-            pub_key: chain_context.pub_key_bytes(),
-            namespace: chain_context.namespace(),
-            proofs,
-            executor_inputs: vec![],
-            trusted_height: *trusted_height,
-            trusted_root: *trusted_root,
-        });
-    }
-
-    // Process blobs to extract executor inputs
-    let mut last_height = 0;
-    for blob in blobs.as_slice() {
-        let signed_data = match SignedData::decode(blob.data.as_slice()) {
-            Ok(data) => data,
-            Err(_) => continue,
-        };
-        let data = signed_data.data.ok_or_else(|| anyhow!("Data not found"))?;
-        let height = data
-            .metadata
-            .ok_or_else(|| anyhow!("Metadata not found"))?
-            .height;
-        last_height = height;
-
-        let client_executor_input = generate_executor_input(
-            chain_context.chain_spec(),
-            chain_context.genesis(),
-            chain_context.evm_provider(),
-            height,
-        )
-        .await?;
-        executor_inputs.push(client_executor_input);
-    }
 
     // Construct the block execution input
     let input = BlockExecInput {
