@@ -51,8 +51,6 @@ async fn test_compute_evolve_state_root() {
     config.rpc.evnode_rpc = "http://178.199.12.26:26658".to_string();
     config.rpc.evreth_rpc = "http://178.199.12.26:8545".to_string();
     config.rpc.evreth_ws = "ws://178.199.12.26:8546".to_string();
-    // Use the public key from the remote sequencer
-    config.pub_key = "04f525a5146348af127d72c78b53f5725c7d32ea99d064328cb25df6c677dc99".to_string();
 
     let chain_context = ChainContext::from_config(config, Arc::new(ism_client))
         .await
@@ -373,8 +371,6 @@ async fn test_batch_prefetch_preserves_order() {
     config.rpc.evnode_rpc = "http://178.199.12.26:26658".to_string();
     config.rpc.evreth_rpc = "http://178.199.12.26:8545".to_string();
     config.rpc.evreth_ws = "ws://178.199.12.26:8546".to_string();
-    // Use the public key from the remote sequencer
-    config.pub_key = "04f525a5146348af127d72c78b53f5725c7d32ea99d064328cb25df6c677dc99".to_string();
 
     let chain_context = ChainContext::from_config(config, Arc::new(ism_client))
         .await
