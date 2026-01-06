@@ -14,13 +14,21 @@ use sp1_sdk::{ProverClient, SP1Stdin};
 use tendermint_rpc::HttpClient as TendermintHttpClient;
 use types::Inputs;
 
+/// Represents a TEE quote report containing attestation data.
 #[derive(Deserialize)]
 struct QuoteReport {
+    /// Hex-encoded SGX/TDX quote bytes.
     quote: String,
+    /// Event log data for attestation verification.
     event_log: String,
+    /// Report data embedded in the quote.
     report_data: String,
 }
 
+/// Tests computing the Evolve state root by building block inputs and executing the batch circuit.
+///
+/// This test fetches the current ISM state, builds block inputs from the trusted height
+/// to the current Celestia head, and executes the SP1 batch ELF to compute the new state.
 #[tokio::test(flavor = "multi_thread")]
 async fn test_compute_evolve_state_root() {
     rustls::crypto::aws_lc_rs::default_provider()
@@ -116,6 +124,10 @@ async fn test_compute_evolve_state_root() {
     // valid state transition output for the ZKISM to consume
 }
 
+/// Tests verification of a TEE attestation quote using DCAP collateral.
+///
+/// Loads a quote report from fixtures, fetches collateral from the PCCS server,
+/// and verifies the attestation is valid.
 #[tokio::test]
 async fn test_verify_quote() {
     // Read the quote report from fixtures
@@ -164,6 +176,10 @@ async fn test_verify_quote() {
     };
 }
 
+/// Tests ZK proof generation for TEE attestation verification.
+///
+/// Loads a quote report from fixtures and generates a compressed SP1 proof
+/// that the attestation is valid.
 #[tokio::test]
 async fn test_generate_proof() {
     let fixture_path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/quote-report.json");
@@ -203,15 +219,23 @@ async fn test_generate_proof() {
     println!("Public values: {:?}", proof.public_values);
 }
 
+/// Response from the TEE app's `/attestation` endpoint.
 #[derive(Deserialize)]
 struct AttestationResponse {
+    /// Whether the attestation request was successful.
     success: bool,
+    /// Hex-encoded SGX/TDX quote bytes.
     quote: Option<String>,
+    /// Event log data for attestation verification.
     event_log: Option<String>,
+    /// Hex-encoded output data committed to in the attestation.
     output: Option<String>,
+    /// Number of execution cycles (for performance metrics).
     #[allow(dead_code)]
     execution_cycles: Option<u64>,
+    /// Error message if the attestation failed.
     error: Option<String>,
+    /// Step at which the attestation failed (if applicable).
     step: Option<u32>,
 }
 
@@ -326,4 +350,45 @@ async fn test_attestation_proof_from_tee() {
         .expect("Failed to verify proof");
 
     println!("Proof verified successfully!");
+}
+
+/// Test that verifies a pre-generated proof from test fixtures.
+///
+/// This test loads proof.bin, public_outputs.bin, and circuit.elf from fixtures
+/// and verifies that the proof is valid for the circuit.
+#[test]
+fn test_verify_attestation_sp1_proof() {
+    use sp1_sdk::HashableKey;
+    use sp1_verifier::Groth16Verifier;
+
+    // Load fixtures
+    let proof_path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/proof.bin");
+    let public_outputs_path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/public_outputs.bin");
+    let circuit_elf_path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/circuit.elf");
+
+    let proof_bytes = std::fs::read(proof_path).expect("Failed to read proof.bin");
+    let public_values_bytes =
+        std::fs::read(public_outputs_path).expect("Failed to read public_outputs.bin");
+    let circuit_elf = std::fs::read(circuit_elf_path).expect("Failed to read circuit.elf");
+
+    println!("Loaded proof: {} bytes", proof_bytes.len());
+    println!("Loaded public values: {} bytes", public_values_bytes.len());
+    println!("Loaded circuit ELF: {} bytes", circuit_elf.len());
+
+    // Setup prover client and get verification key from the ELF
+    let prover_client = ProverClient::from_env();
+    let (_pk, vk) = prover_client.setup(&circuit_elf);
+
+    println!("Verification key hash: {}", vk.bytes32());
+
+    // Verify the Groth16 proof using raw bytes
+    Groth16Verifier::verify(
+        &proof_bytes,
+        &public_values_bytes,
+        &vk.bytes32(),
+        &sp1_verifier::GROTH16_VK_BYTES,
+    )
+    .expect("Failed to verify Groth16 proof from fixture");
+
+    println!("Groth16 proof from fixture verified successfully!");
 }

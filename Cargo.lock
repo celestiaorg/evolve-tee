@@ -5543,6 +5543,7 @@ dependencies = [
  "serde_json",
  "sp1-build",
  "sp1-sdk",
+ "sp1-verifier",
  "tendermint-light-client-verifier",
  "tendermint-rpc",
  "tokio",
@@ -10172,6 +10173,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "sp1-verifier"
+version = "5.2.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e697f43289347aedf378f1c74674ad3e7db16d133b48f04ab3008ca911fe79fa"
+dependencies = [
+ "blake3",
+ "cfg-if",
+ "hex",
+ "lazy_static",
+ "sha2 0.10.9",
+ "substrate-bn-succinct",
+ "thiserror 2.0.17",
+]
+
+[[package]]
 name = "sp1-zkvm"
 version = "5.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10334,6 +10350,23 @@ dependencies = [
 name = "substrate-bn"
 version = "0.6.0"
 source = "git+https://github.com/sp1-patches/bn?tag=patch-0.6.0-sp1-5.0.0#e0d67f219b2ad6a1887e3275b7ba09ada4b1afb6"
+dependencies = [
+ "bytemuck",
+ "byteorder",
+ "cfg-if",
+ "crunchy",
+ "lazy_static",
+ "num-bigint 0.4.6",
+ "rand 0.8.5",
+ "rustc-hex",
+ "sp1-lib",
+]
+
+[[package]]
+name = "substrate-bn-succinct"
+version = "0.6.0-v5.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0ba32f1b74728f92887c3ad17c42bf82998eb52c9091018f35294e9cd388b0c8"
 dependencies = [
  "bytemuck",
  "byteorder",
