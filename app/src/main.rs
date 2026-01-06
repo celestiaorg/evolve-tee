@@ -225,51 +225,6 @@ async fn get_attestation() -> Json<Value> {
         }
     };
 
-    // Step 10: Verify attestation
-    println!("Step 10: Verifying attestation...");
-    let quote = hex::decode(&result.quote).unwrap();
-    let event_log = result.event_log.as_bytes();
-
-    let attestation = match Attestation::new(quote, event_log.to_vec()) {
-        Ok(a) => a,
-        Err(e) => {
-            return Json(
-                json!({"error": format!("Failed to create attestation: {}", e), "step": 10}),
-            )
-        }
-    };
-
-    let decoded_report_data = match attestation.decode_report_data() {
-        Ok(d) => d,
-        Err(e) => {
-            return Json(
-                json!({"error": format!("Failed to decode report data: {}", e), "step": 10}),
-            )
-        }
-    };
-
-    if let Err(e) = attestation
-        .clone()
-        .verify(
-            &decoded_report_data,
-            Some("https://pccs.phala.network/sgx/certification/v4/"),
-        )
-        .await
-    {
-        return Json(
-            json!({"error": format!("Attestation verification failed: {}", e), "step": 10}),
-        );
-    }
-
-    match attestation.decode_app_info(false) {
-        Ok(info) => {
-            println!("Device ID: {}", hex::encode(info.device_id));
-        }
-        Err(e) => {
-            return Json(json!({"error": format!("Failed to decode app info: {}", e), "step": 10}));
-        }
-    };
-
     Json(json!({
         "success": true,
         "quote": result.quote,
