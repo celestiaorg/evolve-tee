@@ -7,11 +7,11 @@ use celestia_grpc_client::{CelestiaIsmClient, QueryIsmRequest, types::ClientConf
 use celestia_rpc::HeaderClient;
 use dstack_verifier::Attestation;
 use ev_prover::{config::Config, prover::chain::ChainContext};
-use ev_zkevm_types::programs::block::{BatchExecInput, State};
+use ev_zkevm_types::programs::block::State;
 use futures::future::try_join_all;
 use light_client::{
-    BATCH_ELF, CIRCUIT_ELF, build_block_input_from_prefetched, get_light_block,
-    prefetch_celestia_data,
+    CIRCUIT_ELF, build_block_input_from_prefetched, get_light_block, prefetch_celestia_data,
+    verify_blocks,
 };
 use serde::Deserialize;
 use sp1_sdk::{ProverClient, SP1Stdin};
@@ -29,10 +29,10 @@ struct QuoteReport {
     report_data: String,
 }
 
-/// Tests computing the Evolve state root by building block inputs and executing the batch circuit.
+/// Tests computing the Evolve state root by building block inputs and running native verification.
 ///
 /// This test fetches the current ISM state, builds block inputs from the trusted height
-/// to the current Celestia head, and executes the SP1 batch ELF to compute the new state.
+/// to the current Celestia head, and runs native block verification to compute the new state.
 #[tokio::test(flavor = "multi_thread")]
 async fn test_compute_evolve_state_root() {
     rustls::crypto::aws_lc_rs::default_provider()
@@ -124,23 +124,15 @@ async fn test_compute_evolve_state_root() {
     let new_light_block = get_light_block(&tendermint_client, celestia_head)
         .await
         .unwrap();
-    let trusted_light_block_raw = serde_cbor::to_vec(&trusted_light_block).unwrap();
-    let new_light_block_raw = serde_cbor::to_vec(&new_light_block).unwrap();
-    let inputs = BatchExecInput {
-        blocks: block_inputs,
-        trusted_light_block_raw,
-        new_light_block_raw,
-    };
-    let sp1_client = ProverClient::from_env();
-    let mut stdin = SP1Stdin::new();
-    stdin.write(&inputs);
-    let (output, report) = sp1_client.execute(BATCH_ELF, &stdin).run().unwrap();
-    println!("Execution cycles: {}", report.total_instruction_count());
-    let output: ev_zkevm_types::programs::block::BlockRangeExecOutput =
-        bincode::deserialize(&output.as_slice()).unwrap();
+
+    // Native block verification (replaces SP1 execution)
+    let start = std::time::Instant::now();
+    let output = verify_blocks(block_inputs, trusted_light_block, new_light_block)
+        .await
+        .unwrap();
+    let elapsed = start.elapsed();
+    println!("Verification completed in {:?}", elapsed);
     println!("Output: {:?}", output);
-    // todo: run the circuit in the TEE, attest to the output and generate a ZKP of the verification with
-    // valid state transition output for the ZKISM to consume
 }
 
 /// Tests verification of a TEE attestation quote using DCAP collateral.
@@ -249,9 +241,6 @@ struct AttestationResponse {
     event_log: Option<String>,
     /// Hex-encoded output data committed to in the attestation.
     output: Option<String>,
-    /// Number of execution cycles (for performance metrics).
-    #[allow(dead_code)]
-    execution_cycles: Option<u64>,
     /// Error message if the attestation failed.
     error: Option<String>,
     /// Step at which the attestation failed (if applicable).

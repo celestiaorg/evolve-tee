@@ -23,6 +23,5 @@ rustls.workspace = true
 serde_cbor.workspace = true
 serde_json.workspace = true
 sha2.workspace = true
-sp1-sdk.workspace = true
 tendermint-rpc.workspace = true
 tokio.workspace = true

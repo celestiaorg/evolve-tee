@@ -7,15 +7,16 @@ use celestia_grpc_client::{types::ClientConfig, CelestiaIsmClient, QueryIsmReque
 use celestia_rpc::HeaderClient;
 use dstack_sdk::dstack_client::DstackClient;
 use ev_prover::{config::Config, prover::chain::ChainContext};
-use ev_zkevm_types::programs::block::{BatchExecInput, State};
+use ev_zkevm_types::programs::block::State;
 use futures::future::try_join_all;
 use light_client::{
-    build_block_input_from_prefetched, get_light_block, prefetch_celestia_data, BATCH_ELF,
+    build_block_input_from_prefetched, get_light_block, prefetch_celestia_data, verify_blocks,
 };
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
-use sp1_sdk::{ProverClient, SP1Stdin};
 use tendermint_rpc::HttpClient as TendermintHttpClient;
+
+const MAX_BLOCKS: u64 = 1000;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -142,12 +143,22 @@ async fn get_attestation() -> Json<Value> {
     let trusted_celestia_height = state.celestia_height;
     let mut trusted_height = state.height;
     let mut trusted_root = FixedBytes::from_slice(&state.state_root);
-    let celestia_head = match chain_context.celestia_client().header_local_head().await {
+    let celestia_head_raw = match chain_context.celestia_client().header_local_head().await {
         Ok(h) => h.height().value(),
         Err(e) => {
             return Json(json!({"error": format!("Failed to get Celestia head: {}", e), "step": 5}))
         }
     };
+    // Limit to MAX_BLOCKS to prevent OOM
+    let celestia_head = celestia_head_raw.min(trusted_celestia_height + MAX_BLOCKS);
+    if celestia_head < celestia_head_raw {
+        println!(
+            "  Limiting from {} blocks to {} (max {})",
+            celestia_head_raw - trusted_celestia_height,
+            celestia_head - trusted_celestia_height,
+            MAX_BLOCKS
+        );
+    }
 
     // Step 6: Build block inputs
     println!(
@@ -214,31 +225,23 @@ async fn get_attestation() -> Json<Value> {
             )
         }
     };
-    let trusted_light_block_raw = serde_cbor::to_vec(&trusted_light_block).unwrap();
-    let new_light_block_raw = serde_cbor::to_vec(&new_light_block).unwrap();
-
-    let inputs = BatchExecInput {
-        blocks: block_inputs,
-        trusted_light_block_raw,
-        new_light_block_raw,
+    // Step 8: Native block verification (replaces SP1 execution for TEE)
+    println!("Step 8: Running native block verification...");
+    let output = match verify_blocks(block_inputs, trusted_light_block, new_light_block).await {
+        Ok(o) => o,
+        Err(e) => {
+            return Json(json!({"error": format!("Block verification failed: {}", e), "step": 8}))
+        }
     };
+    println!("Verification completed");
 
-    // Step 8: SP1 execution
-    println!("Step 8: Running SP1 execution...");
-    let sp1_client = ProverClient::from_env();
-    let mut stdin = SP1Stdin::new();
-    stdin.write(&inputs);
-    let (output, report) = match sp1_client.execute(BATCH_ELF, &stdin).run() {
-        Ok(r) => r,
-        Err(e) => return Json(json!({"error": format!("SP1 execution failed: {}", e), "step": 8})),
-    };
-    println!("Execution cycles: {}", report.total_instruction_count());
+    // Serialize output (same format as SP1 would commit)
+    let output_bytes = bincode::serialize(&output).expect("failed to serialize output");
 
     // Step 9: Get TEE attestation
     println!("Step 9: Getting TEE attestation...");
     let client = DstackClient::new(None);
-    let output_bytes = output.as_slice();
-    let report_data = sha256(output_bytes);
+    let report_data = sha256(&output_bytes);
 
     let result = match client.get_quote(report_data).await {
         Ok(r) => r,
@@ -251,8 +254,7 @@ async fn get_attestation() -> Json<Value> {
         "success": true,
         "quote": result.quote,
         "event_log": result.event_log,
-        "output": hex::encode(output_bytes),
-        "execution_cycles": report.total_instruction_count(),
+        "output": hex::encode(&output_bytes),
     }))
 }
 
