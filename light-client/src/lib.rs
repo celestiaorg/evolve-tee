@@ -37,7 +37,7 @@ pub type DefaultProvider = FillProvider<
 >;
 
 pub const CIRCUIT_ELF: &[u8] = include_elf!("circuit");
-pub const BATCH_ELF: &[u8] = include_bytes!("../../ev-batch-elf");
+pub const BATCH_ELF: &[u8] = include_bytes!("../fixtures/batch.elf");
 
 pub async fn verify_blocks(
     inputs: Vec<BlockExecInput>,

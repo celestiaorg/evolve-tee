@@ -115,8 +115,7 @@ async fn test_compute_evolve_state_root() {
         .unwrap();
         block_inputs.push(input);
     }
-    println!("Block inputs: {:?}", block_inputs.len());
-    println!("Done building block inputs");
+    println!("Done building {} block inputs", block_inputs.len());
 
     // get light blocks
     let trusted_light_block = get_light_block(&tendermint_client, trusted_celestia_height)
