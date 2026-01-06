@@ -44,6 +44,7 @@ pub struct Inputs {
     pub quote: Vec<u8>,
     pub event_log: Vec<u8>,
     pub report_data: Vec<u8>,
+    pub output: Vec<u8>,
     pub collateral: QuoteCollateralV3,
     pub now: u64,
 }
@@ -173,8 +174,6 @@ pub struct VerifiedReport {
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "borsh", derive(BorshSerialize, BorshDeserialize))]
-#[cfg_attr(feature = "borsh_schema", derive(BorshSchema))]
 pub enum Report {
     SgxEnclave(EnclaveReport),
     TD10(TDReport10),
@@ -182,8 +181,6 @@ pub enum Report {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "borsh", derive(BorshSerialize, BorshDeserialize))]
-#[cfg_attr(feature = "borsh_schema", derive(BorshSchema))]
 pub struct EnclaveReport {
     #[serde(with = "serde_bytes")]
     pub cpu_svn: [u8; 16],

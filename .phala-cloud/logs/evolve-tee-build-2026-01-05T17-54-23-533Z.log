@@ -1,0 +1,159 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.19kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/debian:bookworm-slim
+#2 ...
+
+#3 [auth] library/debian:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#4 [auth] library/rust:pull token for registry-1.docker.io
+#4 DONE 0.0s
+
+#5 [internal] load metadata for docker.io/library/rust:1.88
+#5 DONE 1.1s
+
+#2 [internal] load metadata for docker.io/library/debian:bookworm-slim
+#2 DONE 1.5s
+
+#6 [internal] load .dockerignore
+#6 transferring context: 2B done
+#6 DONE 0.0s
+
+#7 [builder  1/19] FROM docker.io/library/rust:1.88@sha256:af306cfa71d987911a781c37b59d7d67d934f49684058f96cf72079c3626bfe0
+#7 resolve docker.io/library/rust:1.88@sha256:af306cfa71d987911a781c37b59d7d67d934f49684058f96cf72079c3626bfe0 0.0s done
+#7 DONE 0.0s
+
+#8 [internal] load build context
+#8 transferring context: 6.74MB 0.1s done
+#8 DONE 0.1s
+
+#9 [builder 10/19] COPY types/Cargo.toml ./types/
+#9 CACHED
+
+#10 [builder 14/19] COPY types/src ./types/src
+#10 CACHED
+
+#11 [builder  4/19] RUN curl -L https://sp1up.succinct.xyz | bash &&     ~/.sp1/bin/sp1up --version 5.2.2
+#11 CACHED
+
+#12 [builder 13/19] COPY circuit/src ./circuit/src
+#12 CACHED
+
+#13 [builder  3/19] RUN curl -fsSL https://go.dev/dl/go1.22.5.linux-amd64.tar.gz | tar -C /usr/local -xzf -
+#13 CACHED
+
+#14 [builder  7/19] COPY app/Cargo.toml ./app/
+#14 CACHED
+
+#15 [builder  5/19] WORKDIR /build
+#15 CACHED
+
+#16 [builder  2/19] RUN apt-get update && apt-get install -y     clang     libclang-dev     && rm -rf /var/lib/apt/lists/*
+#16 CACHED
+
+#17 [builder 12/19] COPY ev-batch-elf ./
+#17 CACHED
+
+#18 [builder  8/19] COPY circuit/Cargo.toml ./circuit/
+#18 CACHED
+
+#19 [builder  9/19] COPY light-client/Cargo.toml ./light-client/
+#19 CACHED
+
+#20 [builder  6/19] COPY Cargo.toml Cargo.lock ./
+#20 CACHED
+
+#21 [builder 11/19] COPY light-client/build.rs ./light-client/
+#21 CACHED
+
+#22 [builder 15/19] RUN mkdir -p app/src && echo "fn main() {}" > app/src/main.rs &&     mkdir -p light-client/src && echo "" > light-client/src/lib.rs
+#22 CACHED
+
+#23 [stage-1 1/5] FROM docker.io/library/debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c
+#23 resolve docker.io/library/debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c 0.0s done
+#23 extracting sha256:0347dcb76707f7d71a7c0b3a5f4a63b97cdd9923e637e67ad65b3b2d4ba05942
+#23 extracting sha256:0347dcb76707f7d71a7c0b3a5f4a63b97cdd9923e637e67ad65b3b2d4ba05942 0.4s done
+#23 DONE 0.4s
+
+#24 [builder 16/19] RUN cargo build --release -p evolve-tee && rm -rf app/src light-client/src
+#24 0.562     Updating git repository `https://github.com/sp1-patches/bn`
+#24 2.023     Updating git repository `https://github.com/sp1-patches/curve25519-dalek`
+#24 2.837     Updating git repository `https://github.com/sp1-patches/elliptic-curves`
+#24 3.583     Updating git repository `https://github.com/sp1-patches/elliptic-curves`
+#24 4.092     Updating git repository `https://github.com/sp1-patches/RustCrypto-hashes`
+#24 4.712     Updating git repository `https://github.com/sp1-patches/RustCrypto-hashes`
+#24 5.268     Updating crates.io index
+#24 5.414     Updating git repository `https://github.com/celestiaorg/celestia-zkevm/`
+#24 ...
+
+#25 [stage-1 2/5] RUN apt-get update && apt-get install -y     ca-certificates     && rm -rf /var/lib/apt/lists/*
+#25 0.311 Get:1 http://deb.debian.org/debian bookworm InRelease [151 kB]
+#25 0.364 Get:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
+#25 0.364 Get:3 http://deb.debian.org/debian-security bookworm-security InRelease [48.0 kB]
+#25 0.804 Get:4 http://deb.debian.org/debian bookworm/main amd64 Packages [8791 kB]
+#25 1.328 Get:5 http://deb.debian.org/debian bookworm-updates/main amd64 Packages [6924 B]
+#25 1.467 Get:6 http://deb.debian.org/debian-security bookworm-security/main amd64 Packages [290 kB]
+#25 2.097 Fetched 9342 kB in 2s (4939 kB/s)
+#25 2.097 Reading package lists...
+#25 2.558 Reading package lists...
+#25 2.939 Building dependency tree...
+#25 3.030 Reading state information...
+#25 3.117 The following additional packages will be installed:
+#25 3.117   libssl3 openssl
+#25 3.158 The following NEW packages will be installed:
+#25 3.158   ca-certificates libssl3 openssl
+#25 3.241 0 upgraded, 3 newly installed, 0 to remove and 0 not upgraded.
+#25 3.241 Need to get 3618 kB of archives.
+#25 3.241 After this operation, 8920 kB of additional disk space will be used.
+#25 3.241 Get:1 http://deb.debian.org/debian-security bookworm-security/main amd64 libssl3 amd64 3.0.17-1~deb12u3 [2028 kB]
+#25 3.331 Get:2 http://deb.debian.org/debian-security bookworm-security/main amd64 openssl amd64 3.0.17-1~deb12u3 [1434 kB]
+#25 3.448 Get:3 http://deb.debian.org/debian bookworm/main amd64 ca-certificates all 20230311+deb12u1 [155 kB]
+#25 3.634 debconf: delaying package configuration, since apt-utils is not installed
+#25 3.674 Fetched 3618 kB in 0s (12.6 MB/s)
+#25 3.740 Selecting previously unselected package libssl3:amd64.
+#25 3.740 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 6095 files and directories currently installed.)
+#25 3.745 Preparing to unpack .../libssl3_3.0.17-1~deb12u3_amd64.deb ...
+#25 3.750 Unpacking libssl3:amd64 (3.0.17-1~deb12u3) ...
+#25 3.915 Selecting previously unselected package openssl.
+#25 3.915 Preparing to unpack .../openssl_3.0.17-1~deb12u3_amd64.deb ...
+#25 3.917 Unpacking openssl (3.0.17-1~deb12u3) ...
+#25 4.061 Selecting previously unselected package ca-certificates.
+#25 4.062 Preparing to unpack .../ca-certificates_20230311+deb12u1_all.deb ...
+#25 4.063 Unpacking ca-certificates (20230311+deb12u1) ...
+#25 4.132 Setting up libssl3:amd64 (3.0.17-1~deb12u3) ...
+#25 4.137 Setting up openssl (3.0.17-1~deb12u3) ...
+#25 4.157 Setting up ca-certificates (20230311+deb12u1) ...
+#25 4.403 debconf: unable to initialize frontend: Dialog
+#25 4.403 debconf: (TERM is not set, so the dialog frontend is not usable.)
+#25 4.403 debconf: falling back to frontend: Readline
+#25 4.404 debconf: unable to initialize frontend: Readline
+#25 4.404 debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC contains: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.36.0 /usr/local/share/perl/5.36.0 /usr/lib/x86_64-linux-gnu/perl5/5.36 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.36 /usr/share/perl/5.36 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 7.)
+#25 4.404 debconf: falling back to frontend: Teletype
+#25 8.577 Updating certificates in /etc/ssl/certs...
+#25 ...
+
+#24 [builder 16/19] RUN cargo build --release -p evolve-tee && rm -rf app/src light-client/src
+#24 14.80     Updating git repository `https://github.com/jonas089/dstack`
+#24 ...
+
+#25 [stage-1 2/5] RUN apt-get update && apt-get install -y     ca-certificates     && rm -rf /var/lib/apt/lists/*
+#25 15.47 142 added, 0 removed; done.
+#25 15.53 Processing triggers for libc-bin (2.36-9+deb12u13) ...
+#25 15.56 Processing triggers for ca-certificates (20230311+deb12u1) ...
+#25 15.61 Updating certificates in /etc/ssl/certs...
+#25 20.98 0 added, 0 removed; done.
+#25 20.98 Running hooks in /etc/ca-certificates/update.d...
+#25 20.99 done.
+#25 DONE 21.1s
+
+#24 [builder 16/19] RUN cargo build --release -p evolve-tee && rm -rf app/src light-client/src
+#24 ...
+
+#26 [stage-1 3/5] WORKDIR /app
+#26 DONE 0.0s
+
+#24 [builder 16/19] RUN cargo build --release -p evolve-tee && rm -rf app/src light-client/src

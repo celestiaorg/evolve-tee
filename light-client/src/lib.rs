@@ -256,12 +256,20 @@ mod tests {
         let ism_client = CelestiaIsmClient::new(ClientConfig::from_env().unwrap())
             .await
             .unwrap();
-        let chain_context = ChainContext::from_config(Config::default(), Arc::new(ism_client))
+
+        // Override default config with remote RPC endpoints
+        let mut config = Config::default();
+        config.rpc.celestia_rpc = "http://178.199.12.26:26658".to_string();
+        config.rpc.evnode_rpc = "http://178.199.12.26:26658".to_string();
+        config.rpc.evreth_rpc = "http://178.199.12.26:8545".to_string();
+        config.rpc.evreth_ws = "ws://178.199.12.26:8546".to_string();
+
+        let chain_context = ChainContext::from_config(config, Arc::new(ism_client))
             .await
             .unwrap();
 
-        // use local tendermint rpc hardcoded
-        let tendermint_client = TendermintHttpClient::new("http://localhost:26657")
+        // use remote tendermint rpc
+        let tendermint_client = TendermintHttpClient::new("http://178.199.12.26:26657")
             .context("Failed to create Tendermint RPC client")
             .unwrap();
 
@@ -287,6 +295,11 @@ mod tests {
             .height()
             .value();
         let mut block_inputs: Vec<BlockExecInput> = Vec::new();
+        println!(
+            "Building block inputs from {} to {}...",
+            trusted_celestia_height + 1,
+            celestia_head
+        );
         for block_number in trusted_celestia_height + 1..=celestia_head {
             let input = build_block_input(
                 chain_context.clone(),
@@ -298,6 +311,7 @@ mod tests {
             .unwrap();
             block_inputs.push(input);
         }
+        println!("Done building block inputs");
 
         // get light blocks
         let trusted_light_block = get_light_block(&tendermint_client, trusted_celestia_height)
@@ -316,9 +330,10 @@ mod tests {
         let sp1_client = ProverClient::from_env();
         let mut stdin = SP1Stdin::new();
         stdin.write(&inputs);
-        let (_output, report) = sp1_client.execute(BATCH_ELF, &stdin).run().unwrap();
+        let (output, report) = sp1_client.execute(BATCH_ELF, &stdin).run().unwrap();
         println!("Execution cycles: {}", report.total_instruction_count());
-
+        let output: BlockRangeExecOutput = bincode::deserialize(&output.as_slice()).unwrap();
+        println!("Output: {:?}", output);
         // todo: run the circuit in the TEE, attest to the output and generate a ZKP of the verification with
         // valid state transition output for the ZKISM to consume
     }
@@ -401,6 +416,7 @@ mod tests {
             event_log: event_log.to_vec(),
             report_data: report.report_data.as_bytes().to_vec(),
             collateral: collateral,
+            output: Vec::new(),
             now,
         };
 
@@ -411,5 +427,122 @@ mod tests {
         let proof = prover_client.prove(&pk, &stdin).compressed().run().unwrap();
         println!("Proof generated successfully");
         println!("Public values: {:?}", proof.public_values);
+    }
+
+    #[derive(Deserialize)]
+    struct AttestationResponse {
+        success: bool,
+        quote: Option<String>,
+        event_log: Option<String>,
+        output: Option<String>,
+        #[allow(dead_code)]
+        execution_cycles: Option<u64>,
+        error: Option<String>,
+        step: Option<u32>,
+    }
+
+    /// Test that fetches attestation from the TEE app and generates a proof using the circuit.
+    ///
+    /// This test requires the TEE app to be running at the URL specified by TEE_APP_URL env var.
+    /// The test:
+    /// 1. Fetches attestation data (quote, event_log, output) from /attestation endpoint
+    /// 2. Retrieves collateral for the quote
+    /// 3. Constructs circuit inputs with the attested output
+    /// 4. Generates a ZK proof that verifies the attestation
+    #[tokio::test]
+    async fn test_attestation_proof_from_tee() {
+        dotenvy::dotenv().ok();
+
+        // Get the TEE app URL from environment or use default
+        let tee_app_url =
+            std::env::var("TEE_APP_URL").expect("TEE_APP_URL environment variable is not set");
+
+        println!("Fetching attestation from {}...", tee_app_url);
+
+        // Fetch attestation from the TEE app
+        let client = reqwest::Client::new();
+        let response = client
+            .get(format!("{}/attestation", tee_app_url))
+            .send()
+            .await
+            .expect("Failed to connect to TEE app");
+
+        let attestation: AttestationResponse = response
+            .json()
+            .await
+            .expect("Failed to parse attestation response");
+
+        if !attestation.success {
+            panic!(
+                "Attestation failed at step {:?}: {:?}",
+                attestation.step, attestation.error
+            );
+        }
+
+        let quote_hex = attestation.quote.expect("Missing quote in response");
+        let event_log_str = attestation
+            .event_log
+            .expect("Missing event_log in response");
+        let output_hex = attestation.output.expect("Missing output in response");
+
+        println!("Attestation received successfully");
+        println!("Output length: {} bytes", output_hex.len() / 2);
+
+        // Decode the hex-encoded values
+        let quote = hex::decode(&quote_hex).expect("Failed to decode quote hex");
+        let event_log = event_log_str.as_bytes();
+        let output = hex::decode(&output_hex).expect("Failed to decode output hex");
+
+        println!("Fetching collateral...");
+
+        // Get collateral for the quote
+        let collateral = dcap_qvl::collateral::get_collateral(
+            "https://pccs.phala.network/sgx/certification/v4/",
+            &quote,
+        )
+        .await
+        .expect("Failed to get collateral");
+
+        let now = SystemTime::now()
+            .duration_since(SystemTime::UNIX_EPOCH)
+            .expect("Failed to get current time")
+            .as_secs();
+
+        // The report_data in the quote is the SHA-256 hash of the output (first 32 bytes)
+        // We pass the raw output; the circuit will verify the hash matches
+        let inputs: Inputs = Inputs {
+            quote,
+            event_log: event_log.to_vec(),
+            report_data: Vec::new(), // Not used directly, extracted from quote in circuit
+            collateral,
+            output,
+            now,
+        };
+
+        println!("Setting up prover...");
+
+        let prover_client = ProverClient::from_env();
+        let (pk, vk) = prover_client.setup(CIRCUIT_ELF);
+
+        let mut stdin = SP1Stdin::new();
+        stdin.write(&inputs);
+
+        println!("Generating proof...");
+
+        let proof = prover_client
+            .prove(&pk, &stdin)
+            .compressed()
+            .run()
+            .expect("Failed to generate proof");
+
+        println!("Proof generated successfully!");
+        println!("Public values: {:?}", proof.public_values);
+
+        // Verify the proof
+        prover_client
+            .verify(&proof, &vk)
+            .expect("Failed to verify proof");
+
+        println!("Proof verified successfully!");
     }
 }

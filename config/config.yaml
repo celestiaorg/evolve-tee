@@ -1,11 +1,11 @@
 grpc_address: 127.0.0.1:50051
 rpc:
-  celestia_rpc: http://localhost:26658
-  tendermint_rpc: http://localhost:26657
+  celestia_rpc: http://178.199.12.26:26658
+  tendermint_rpc: http://178.199.12.26:26657
   celestia_auth_token: null
-  evnode_rpc: http://localhost:7331
-  evreth_rpc: http://localhost:8545
-  evreth_ws: ws://localhost:8546
+  evnode_rpc: http://178.199.12.26:7331
+  evreth_rpc: http://178.199.12.26:8545
+  evreth_ws: ws://178.199.12.26:8546
 hyperlane:
   evm:
     mailbox_address: 0xb1c938f5ba4b3593377f399e12175e8db0c787ff

@@ -40,7 +40,9 @@ async fn main() -> anyhow::Result<()> {
 // Simple TEE quote - no external dependencies
 async fn get_simple_quote() -> Json<Value> {
     let client = DstackClient::new(None);
-    match client.get_quote(vec![]).await {
+    // Report data must be exactly 64 bytes for SGX quotes
+    let report_data = vec![0u8; 64];
+    match client.get_quote(report_data).await {
         Ok(result) => Json(json!({
             "success": true,
             "quote": result.quote,
@@ -78,15 +80,23 @@ async fn get_attestation() -> Json<Value> {
     };
 
     println!("Step 2: Creating chain context...");
-    let chain_context =
-        match ChainContext::from_config(Config::default(), Arc::new(ism_client)).await {
-            Ok(c) => c,
-            Err(e) => {
-                return Json(
-                    json!({"error": format!("Failed to create chain context: {}", e), "step": 2}),
-                )
-            }
-        };
+    let mut config = Config::default();
+    let celestia_rpc_url = std::env::var("CELESTIA_RPC_URL").unwrap();
+    let evnode_rpc_url = std::env::var("EV_NODE_URL").unwrap();
+    let evreth_rpc_url = std::env::var("RETH_RPC_URL").unwrap();
+    let evreth_ws_url = std::env::var("RETH_WS_URL").unwrap();
+    config.rpc.celestia_rpc = celestia_rpc_url;
+    config.rpc.evnode_rpc = evnode_rpc_url;
+    config.rpc.evreth_rpc = evreth_rpc_url;
+    config.rpc.evreth_ws = evreth_ws_url;
+    let chain_context = match ChainContext::from_config(config, Arc::new(ism_client)).await {
+        Ok(c) => c,
+        Err(e) => {
+            return Json(
+                json!({"error": format!("Failed to create chain context: {}", e), "step": 2}),
+            )
+        }
+    };
 
     // Step 3: Connect to Tendermint
     println!("Step 3: Connecting to Tendermint...");

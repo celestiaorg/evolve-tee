@@ -1,0 +1,1963 @@
+#0 building with "desktop-linux" instance using docker driver
+
+#1 [internal] load build definition from Dockerfile
+#1 transferring dockerfile: 2.19kB done
+#1 DONE 0.0s
+
+#2 [internal] load metadata for docker.io/library/debian:bookworm-slim
+#2 ...
+
+#3 [auth] library/debian:pull token for registry-1.docker.io
+#3 DONE 0.0s
+
+#4 [auth] library/rust:pull token for registry-1.docker.io
+#4 DONE 0.0s
+
+#5 [internal] load metadata for docker.io/library/rust:1.88
+#5 DONE 1.1s
+
+#2 [internal] load metadata for docker.io/library/debian:bookworm-slim
+#2 DONE 1.5s
+
+#6 [internal] load .dockerignore
+#6 transferring context: 2B done
+#6 DONE 0.0s
+
+#7 [internal] load build context
+#7 transferring context: 11.87kB done
+#7 DONE 0.0s
+
+#8 [builder  1/19] FROM docker.io/library/rust:1.88@sha256:af306cfa71d987911a781c37b59d7d67d934f49684058f96cf72079c3626bfe0
+#8 resolve docker.io/library/rust:1.88@sha256:af306cfa71d987911a781c37b59d7d67d934f49684058f96cf72079c3626bfe0 0.0s done
+#8 DONE 0.0s
+
+#9 [builder  2/19] RUN apt-get update && apt-get install -y     clang     libclang-dev     && rm -rf /var/lib/apt/lists/*
+#9 CACHED
+
+#10 [builder  6/19] COPY Cargo.toml Cargo.lock ./
+#10 CACHED
+
+#11 [builder  9/19] COPY light-client/Cargo.toml ./light-client/
+#11 CACHED
+
+#12 [builder 12/19] COPY ev-batch-elf ./
+#12 CACHED
+
+#13 [builder 14/19] COPY types/src ./types/src
+#13 CACHED
+
+#14 [builder  5/19] WORKDIR /build
+#14 CACHED
+
+#15 [builder  7/19] COPY app/Cargo.toml ./app/
+#15 CACHED
+
+#16 [builder 10/19] COPY types/Cargo.toml ./types/
+#16 CACHED
+
+#17 [builder 11/19] COPY light-client/build.rs ./light-client/
+#17 CACHED
+
+#18 [builder 13/19] COPY circuit/src ./circuit/src
+#18 CACHED
+
+#19 [builder  4/19] RUN curl -L https://sp1up.succinct.xyz | bash &&     ~/.sp1/bin/sp1up --version 5.2.2
+#19 CACHED
+
+#20 [builder  3/19] RUN curl -fsSL https://go.dev/dl/go1.22.5.linux-amd64.tar.gz | tar -C /usr/local -xzf -
+#20 CACHED
+
+#21 [builder  8/19] COPY circuit/Cargo.toml ./circuit/
+#21 CACHED
+
+#22 [builder 15/19] RUN mkdir -p app/src && echo "fn main() {}" > app/src/main.rs &&     mkdir -p light-client/src && echo "" > light-client/src/lib.rs
+#22 CACHED
+
+#23 [stage-1 1/5] FROM docker.io/library/debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c
+#23 resolve docker.io/library/debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c 0.0s done
+#23 extracting sha256:0347dcb76707f7d71a7c0b3a5f4a63b97cdd9923e637e67ad65b3b2d4ba05942
+#23 extracting sha256:0347dcb76707f7d71a7c0b3a5f4a63b97cdd9923e637e67ad65b3b2d4ba05942 0.4s done
+#23 DONE 0.4s
+
+#24 [builder 16/19] RUN cargo build --release -p evolve-tee && rm -rf app/src light-client/src
+#24 0.535     Updating git repository `https://github.com/sp1-patches/bn`
+#24 1.619     Updating git repository `https://github.com/sp1-patches/curve25519-dalek`
+#24 2.532     Updating git repository `https://github.com/sp1-patches/elliptic-curves`
+#24 3.281     Updating git repository `https://github.com/sp1-patches/elliptic-curves`
+#24 3.795     Updating git repository `https://github.com/sp1-patches/RustCrypto-hashes`
+#24 4.491     Updating git repository `https://github.com/sp1-patches/RustCrypto-hashes`
+#24 4.979     Updating crates.io index
+#24 4.983     Updating git repository `https://github.com/celestiaorg/celestia-zkevm/`
+#24 ...
+
+#25 [stage-1 2/5] RUN apt-get update && apt-get install -y     ca-certificates     && rm -rf /var/lib/apt/lists/*
+#25 0.240 Get:1 http://deb.debian.org/debian bookworm InRelease [151 kB]
+#25 0.288 Get:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
+#25 0.288 Get:3 http://deb.debian.org/debian-security bookworm-security InRelease [48.0 kB]
+#25 0.651 Get:4 http://deb.debian.org/debian bookworm/main amd64 Packages [8791 kB]
+#25 1.525 Get:5 http://deb.debian.org/debian bookworm-updates/main amd64 Packages [6924 B]
+#25 1.525 Get:6 http://deb.debian.org/debian-security bookworm-security/main amd64 Packages [290 kB]
+#25 2.313 Fetched 9342 kB in 2s (4384 kB/s)
+#25 2.313 Reading package lists...
+#25 2.860 Reading package lists...
+#25 3.343 Building dependency tree...
+#25 3.463 Reading state information...
+#25 3.568 The following additional packages will be installed:
+#25 3.569   libssl3 openssl
+#25 3.612 The following NEW packages will be installed:
+#25 3.612   ca-certificates libssl3 openssl
+#25 3.701 0 upgraded, 3 newly installed, 0 to remove and 0 not upgraded.
+#25 3.701 Need to get 3618 kB of archives.
+#25 3.701 After this operation, 8920 kB of additional disk space will be used.
+#25 3.701 Get:1 http://deb.debian.org/debian-security bookworm-security/main amd64 libssl3 amd64 3.0.17-1~deb12u3 [2028 kB]
+#25 3.791 Get:2 http://deb.debian.org/debian-security bookworm-security/main amd64 openssl amd64 3.0.17-1~deb12u3 [1434 kB]
+#25 3.826 Get:3 http://deb.debian.org/debian bookworm/main amd64 ca-certificates all 20230311+deb12u1 [155 kB]
+#25 4.020 debconf: delaying package configuration, since apt-utils is not installed
+#25 4.063 Fetched 3618 kB in 0s (17.3 MB/s)
+#25 4.129 Selecting previously unselected package libssl3:amd64.
+#25 4.129 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 6095 files and directories currently installed.)
+#25 4.132 Preparing to unpack .../libssl3_3.0.17-1~deb12u3_amd64.deb ...
+#25 4.137 Unpacking libssl3:amd64 (3.0.17-1~deb12u3) ...
+#25 4.309 Selecting previously unselected package openssl.
+#25 4.310 Preparing to unpack .../openssl_3.0.17-1~deb12u3_amd64.deb ...
+#25 4.311 Unpacking openssl (3.0.17-1~deb12u3) ...
+#25 4.470 Selecting previously unselected package ca-certificates.
+#25 4.471 Preparing to unpack .../ca-certificates_20230311+deb12u1_all.deb ...
+#25 4.478 Unpacking ca-certificates (20230311+deb12u1) ...
+#25 4.545 Setting up libssl3:amd64 (3.0.17-1~deb12u3) ...
+#25 4.550 Setting up openssl (3.0.17-1~deb12u3) ...
+#25 4.568 Setting up ca-certificates (20230311+deb12u1) ...
+#25 4.802 debconf: unable to initialize frontend: Dialog
+#25 4.802 debconf: (TERM is not set, so the dialog frontend is not usable.)
+#25 4.802 debconf: falling back to frontend: Readline
+#25 4.803 debconf: unable to initialize frontend: Readline
+#25 4.803 debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC contains: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.36.0 /usr/local/share/perl/5.36.0 /usr/lib/x86_64-linux-gnu/perl5/5.36 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.36 /usr/share/perl/5.36 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 7.)
+#25 4.803 debconf: falling back to frontend: Teletype
+#25 9.153 Updating certificates in /etc/ssl/certs...
+#25 ...
+
+#24 [builder 16/19] RUN cargo build --release -p evolve-tee && rm -rf app/src light-client/src
+#24 13.25     Updating git repository `https://github.com/jonas089/dstack`
+#24 ...
+
+#25 [stage-1 2/5] RUN apt-get update && apt-get install -y     ca-certificates     && rm -rf /var/lib/apt/lists/*
+#25 16.29 142 added, 0 removed; done.
+#25 16.35 Processing triggers for libc-bin (2.36-9+deb12u13) ...
+#25 16.38 Processing triggers for ca-certificates (20230311+deb12u1) ...
+#25 16.43 Updating certificates in /etc/ssl/certs...
+#25 22.00 0 added, 0 removed; done.
+#25 22.00 Running hooks in /etc/ca-certificates/update.d...
+#25 22.01 done.
+#25 DONE 22.2s
+
+#24 [builder 16/19] RUN cargo build --release -p evolve-tee && rm -rf app/src light-client/src
+#24 ...
+
+#26 [stage-1 3/5] WORKDIR /app
+#26 DONE 0.0s
+
+#24 [builder 16/19] RUN cargo build --release -p evolve-tee && rm -rf app/src light-client/src
+#24 372.4     Updating git repository `https://github.com/celestiaorg/celestia-zkevm/`
+#24 373.6     Updating git repository `https://github.com/jonas089/dcap-qvl`
+#24 375.5     Updating git repository `https://github.com/paradigmxyz/reth`
+#24 388.2     Updating git repository `https://github.com/succinctlabs/rsp.git`
+#24 388.7     Updating git repository `https://github.com/rwf2/Rocket`
+#24 391.2     Updating git repository `https://github.com/sp1-patches/signatures.git`
+#24 394.1     Updating git repository `https://github.com/SergioBenitez/s2n-quic-h3.git`
+#24 401.7  Downloading crates ...
+#24 401.9   Downloaded alloy v1.0.32
+#24 401.9   Downloaded ark-serialize v0.5.0
+#24 401.9   Downloaded addchain v0.2.0
+#24 402.0   Downloaded ark-bn254 v0.5.0
+#24 402.0   Downloaded alloy-rlp-derive v0.3.12
+#24 402.0   Downloaded async-stream-impl v0.3.6
+#24 402.0   Downloaded ark-ff-macros v0.4.2
+#24 402.0   Downloaded alloy-hardforks v0.2.13
+#24 402.0   Downloaded async-stream v0.3.6
+#24 402.0   Downloaded alloy-sol-macro-input v1.3.0
+#24 402.0   Downloaded atomic-waker v1.1.2
+#24 402.0   Downloaded arrayref v0.3.9
+#24 402.0   Downloaded ark-serialize-derive v0.5.0
+#24 402.0   Downloaded anstyle-query v1.1.5
+#24 402.0   Downloaded alloy-rlp v0.3.12
+#24 402.0   Downloaded asn1-rs-derive v0.5.1
+#24 402.0   Downloaded ark-serialize v0.4.2
+#24 402.0   Downloaded ark-serialize v0.3.0
+#24 402.0   Downloaded ark-ff-macros v0.5.0
+#24 402.0   Downloaded asn1-rs-impl v0.2.0
+#24 402.0   Downloaded ark-ff-macros v0.3.0
+#24 402.0   Downloaded adler2 v2.0.1
+#24 402.0   Downloaded ark-ff-asm v0.4.2
+#24 402.0   Downloaded autocfg v1.5.0
+#24 402.0   Downloaded aurora-engine-modexp v1.2.0
+#24 402.0   Downloaded asn1_der v0.7.6
+#24 402.0   Downloaded ansi_term v0.12.1
+#24 402.0   Downloaded alloy-tx-macros v1.2.1
+#24 402.0   Downloaded alloy-transport-ws v1.0.41
+#24 402.0   Downloaded async-trait v0.1.89
+#24 402.0   Downloaded aws-credential-types v1.2.11
+#24 402.0   Downloaded anstyle-parse v0.2.7
+#24 402.0   Downloaded anstyle v1.0.13
+#24 402.0   Downloaded lumina-utils v0.4.0
+#24 402.0   Downloaded der-parser v9.0.0
+#24 402.0   Downloaded ark-std v0.3.0
+#24 402.0   Downloaded ark-std v0.4.0
+#24 402.0   Downloaded anstream v0.6.21
+#24 402.0   Downloaded alloy-serde v1.0.41
+#24 402.0   Downloaded alloy-rpc-types v1.0.32
+#24 402.0   Downloaded alloy-network-primitives v1.0.41
+#24 402.0   Downloaded alloy-core v1.3.0
+#24 402.0   Downloaded alloy-eip7702 v0.6.1
+#24 402.0   Downloaded alloy-consensus-any v1.0.41
+#24 402.0   Downloaded ark-std v0.5.0
+#24 402.0   Downloaded alloy-signer v1.0.41
+#24 402.0   Downloaded alloy-op-evm v0.12.3
+#24 402.0   Downloaded alloy-sol-type-parser v1.5.2
+#24 402.0   Downloaded alloy-sol-macro v1.3.0
+#24 402.0   Downloaded alloy-eip2124 v0.2.0
+#24 402.0   Downloaded ark-ff-asm v0.3.0
+#24 402.0   Downloaded alloy-op-hardforks v0.2.13
+#24 402.0   Downloaded alloy-eip2930 v0.2.1
+#24 402.0   Downloaded ark-ff-asm v0.5.0
+#24 402.0   Downloaded lock_api v0.4.14
+#24 402.1   Downloaded num v0.4.3
+#24 402.1   Downloaded nu-ansi-term v0.50.3
+#24 402.1   Downloaded alloy-primitives v1.3.0
+#24 402.1   Downloaded ark-ff v0.5.0
+#24 402.1   Downloaded oid-registry v0.7.1
+#24 402.1   Downloaded alloy-provider v1.0.32
+#24 402.1   Downloaded aho-corasick v1.1.4
+#24 402.1   Downloaded aws-config v1.8.12
+#24 402.1   Downloaded crossbeam-deque v0.8.6
+#24 402.1   Downloaded alloy-rpc-types-eth v1.0.41
+#24 402.1   Downloaded alloy-consensus v1.0.41
+#24 402.1   Downloaded multiaddr v0.18.2
+#24 402.1   Downloaded modular-bitfield v0.11.2
+#24 402.1   Downloaded p3-challenger v0.2.3-succinct
+#24 402.1   Downloaded prost v0.13.5
+#24 402.1   Downloaded aws-sdk-kms v1.97.0
+#24 402.1   Downloaded dotenvy v0.15.7
+#24 402.1   Downloaded derive_more-impl v1.0.0
+#24 402.1   Downloaded enum-as-inner v0.6.1
+#24 402.1   Downloaded dashu-base v0.4.1
+#24 402.1   Downloaded dunce v1.0.5
+#24 402.1   Downloaded enum-map-derive v0.17.0
+#24 402.1   Downloaded dashmap v6.1.0
+#24 402.1   Downloaded prost-types v0.12.6
+#24 402.1   Downloaded either v1.15.0
+#24 402.1   Downloaded derive_more v1.0.0
+#24 402.1   Downloaded ref-swap v0.1.2
+#24 402.1   Downloaded prost-derive v0.13.5
+#24 402.1   Downloaded ref-cast-impl v1.0.25
+#24 402.2   Downloaded radium v0.7.0
+#24 402.2   Downloaded tokio-tungstenite v0.26.2
+#24 402.2   Downloaded quote v1.0.42
+#24 402.2   Downloaded crossbeam-utils v0.8.21
+#24 402.2   Downloaded dashu-macros v0.4.1
+#24 402.2   Downloaded data-encoding-macro v0.1.18
+#24 402.2   Downloaded derive_more v0.99.20
+#24 402.2   Downloaded data-encoding v2.9.0
+#24 402.2   Downloaded object v0.37.3
+#24 402.2   Downloaded devise v0.4.2
+#24 402.2   Downloaded object v0.36.7
+#24 402.2   Downloaded futures-task v0.3.31
+#24 402.2   Downloaded rusty-fork v0.3.1
+#24 402.2   Downloaded dyn-clone v1.0.20
+#24 402.2   Downloaded downloader v0.2.8
+#24 402.2   Downloaded rustversion v1.0.22
+#24 402.2   Downloaded rustls-pki-types v1.13.2
+#24 402.2   Downloaded ed25519 v2.2.3
+#24 402.2   Downloaded ryu v1.0.21
+#24 402.2   Downloaded rustls-platform-verifier v0.5.3
+#24 402.2   Downloaded serde_bytes v0.11.19
+#24 402.2   Downloaded serde_arrays v0.2.0
+#24 402.2   Downloaded serde-human-bytes v0.1.2
+#24 402.2   Downloaded sp1-recursion-derive v5.2.4
+#24 402.2   Downloaded pest v2.8.4
+#24 402.2   Downloaded sp1-derive v5.2.4
+#24 402.2   Downloaded sp1-zkvm v5.2.2
+#24 402.2   Downloaded semver v1.0.27
+#24 402.2   Downloaded sp1-lib v5.2.4
+#24 402.2   Downloaded spin v0.9.8
+#24 402.2   Downloaded sp1-build v5.2.2
+#24 402.2   Downloaded sp1-curves v5.2.4
+#24 402.2   Downloaded sp1-recursion-gnark-ffi v5.2.4
+#24 402.2   Downloaded toml_datetime v0.7.5+spec-1.1.0
+#24 402.2   Downloaded rayon-core v1.13.0
+#24 402.2   Downloaded tonic-reflection v0.10.2
+#24 402.2   Downloaded soketto v0.8.1
+#24 402.2   Downloaded fnv v1.0.7
+#24 402.2   Downloaded tonic-build v0.13.1
+#24 402.2   Downloaded socket2 v0.6.1
+#24 402.2   Downloaded semver-parser v0.10.3
+#24 402.2   Downloaded bit-set v0.8.0
+#24 402.2   Downloaded enum-ordinalize v4.3.2
+#24 402.2   Downloaded zerofrom v0.1.6
+#24 402.2   Downloaded yoke-derive v0.8.1
+#24 402.2   Downloaded serde_cbor v0.11.2
+#24 402.2   Downloaded want v0.3.1
+#24 402.2   Downloaded wait-timeout v0.2.1
+#24 402.3   Downloaded eventsource-stream v0.2.3
+#24 402.3   Downloaded rand v0.8.5
+#24 402.3   Downloaded writeable v0.6.2
+#24 402.3   Downloaded wyz v0.5.1
+#24 402.3   Downloaded walkdir v2.5.0
+#24 402.3   Downloaded flex-error v0.4.4
+#24 402.3   Downloaded yoke v0.8.1
+#24 402.3   Downloaded xmlparser v0.13.6
+#24 402.3   Downloaded regex-lite v0.1.8
+#24 402.3   Downloaded gen_ops v0.4.0
+#24 402.3   Downloaded yasna v0.5.2
+#24 402.3   Downloaded web-time v1.1.0
+#24 402.3   Downloaded hex-literal v1.1.0
+#24 402.3   Downloaded glob v0.3.3
+#24 402.3   Downloaded convert_case v0.7.1
+#24 402.3   Downloaded futures-channel v0.3.31
+#24 402.3   Downloaded ruzstd v0.7.3
+#24 402.3   Downloaded futures-executor v0.3.31
+#24 402.3   Downloaded aws-smithy-http v0.62.6
+#24 402.3   Downloaded heck v0.4.1
+#24 402.3   Downloaded rustls-webpki v0.103.8
+#24 402.3   Downloaded fs_extra v1.3.0
+#24 402.3   Downloaded hyper-timeout v0.5.2
+#24 402.3   Downloaded serde v1.0.228
+#24 402.3   Downloaded informalsystems-pbjson v0.7.0
+#24 402.3   Downloaded sp1-core-executor v5.2.4
+#24 402.3   Downloaded unicode-xid v0.2.6
+#24 402.3   Downloaded rustls-webpki v0.101.7
+#24 402.3   Downloaded ipnet v2.11.0
+#24 402.3   Downloaded logos-derive v0.15.1
+#24 402.3   Downloaded clap_lex v0.7.6
+#24 402.3   Downloaded sp1-recursion-core v5.2.4
+#24 402.3   Downloaded jsonrpsee-http-client v0.25.1
+#24 402.3   Downloaded toml_edit v0.19.15
+#24 402.3   Downloaded num-conv v0.1.0
+#24 402.3   Downloaded yansi v1.0.1
+#24 402.3   Downloaded snowbridge-amcl v1.0.2
+#24 402.3   Downloaded regex-syntax v0.8.8
+#24 402.3   Downloaded option-ext v0.2.0
+#24 402.4   Downloaded num-complex v0.4.6
+#24 402.4   Downloaded or-panic v1.0.2
+#24 402.4   Downloaded x509-parser v0.16.0
+#24 402.4   Downloaded elliptic-curve v0.13.8
+#24 402.4   Downloaded camino v1.2.2
+#24 402.4   Downloaded miette-derive v7.6.0
+#24 402.4   Downloaded match-lookup v0.1.1
+#24 402.4   Downloaded macro-string v0.1.4
+#24 402.4   Downloaded jsonrpsee-core v0.25.1
+#24 402.4   Downloaded zerocopy-derive v0.8.31
+#24 402.4   Downloaded crossbeam-epoch v0.9.18
+#24 402.4   Downloaded jsonrpsee-client-transport v0.25.1
+#24 402.4   Downloaded jsonrpsee v0.25.1
+#24 402.4   Downloaded toml_edit v0.22.27
+#24 402.4   Downloaded sp1-stark v5.2.4
+#24 402.4   Downloaded icu_properties v2.1.2
+#24 402.4   Downloaded cargo-platform v0.1.9
+#24 402.4   Downloaded derive_more-impl v2.1.1
+#24 402.4   Downloaded secp256k1 v0.30.0
+#24 402.4   Downloaded sp1-recursion-compiler v5.2.4
+#24 402.4   Downloaded sp1-recursion-circuit v5.2.4
+#24 402.4   Downloaded regex v1.12.2
+#24 402.4   Downloaded halo2 v0.1.0-beta.2
+#24 402.4   Downloaded twirp-rs v0.13.0-succinct
+#24 402.4   Downloaded ff v0.13.1
+#24 402.4   Downloaded enum_dispatch v0.3.13
+#24 402.4   Downloaded devise_core v0.4.2
+#24 402.4   Downloaded digest v0.10.7
+#24 402.4   Downloaded const_format_proc_macros v0.2.34
+#24 402.4   Downloaded hex-literal v0.4.1
+#24 402.4   Downloaded clap_derive v4.5.49
+#24 402.4   Downloaded rand v0.7.3
+#24 402.4   Downloaded prost-reflect v0.14.7
+#24 402.4   Downloaded fixedbitset v0.5.7
+#24 402.4   Downloaded unicode-ident v1.0.22
+#24 402.4   Downloaded futures-macro v0.3.31
+#24 402.4   Downloaded vsimd v0.8.0
+#24 402.4   Downloaded constant_time_eq v0.3.1
+#24 402.4   Downloaded futures-timer v3.0.3
+#24 402.4   Downloaded form_urlencoded v1.2.2
+#24 402.4   Downloaded foldhash v0.2.0
+#24 402.4   Downloaded der_derive v0.7.3
+#24 402.4   Downloaded prost-reflect v0.15.3
+#24 402.4   Downloaded dirs v5.0.1
+#24 402.4   Downloaded foreign-types-shared v0.1.1
+#24 402.4   Downloaded webpki-roots v0.26.11
+#24 402.4   Downloaded futures-core v0.3.31
+#24 402.4   Downloaded tracing-forest v0.1.6
+#24 402.4   Downloaded sp1-primitives v5.2.4
+#24 402.4   Downloaded x509-cert v0.2.5
+#24 402.5   Downloaded p3-maybe-rayon v0.2.3-succinct
+#24 402.5   Downloaded op-alloy-consensus v0.18.14
+#24 402.5   Downloaded winnow v0.5.40
+#24 402.5   Downloaded once_cell v1.21.3
+#24 402.5   Downloaded sp1-sdk v5.2.2
+#24 402.5   Downloaded unicode-segmentation v1.12.0
+#24 402.5   Downloaded phf_shared v0.11.3
+#24 402.5   Downloaded num-iter v0.1.45
+#24 402.5   Downloaded sp1-cuda v5.2.2
+#24 402.5   Downloaded errno v0.3.14
+#24 402.5   Downloaded futures-io v0.3.31
+#24 402.5   Downloaded paste v1.0.15
+#24 402.5   Downloaded rand_chacha v0.3.1
+#24 402.5   Downloaded rand_chacha v0.2.2
+#24 402.5   Downloaded phf_generator v0.11.3
+#24 402.5   Downloaded ff_derive v0.13.1
+#24 402.5   Downloaded phf_macros v0.11.3
+#24 402.5   Downloaded phf v0.11.3
+#24 402.5   Downloaded borsh-derive v1.6.0
+#24 402.5   Downloaded revm-primitives v20.2.1
+#24 402.5   Downloaded rustls-native-certs v0.6.3
+#24 402.5   Downloaded serde_urlencoded v0.7.1
+#24 402.5   Downloaded jsonrpsee-types v0.25.1
+#24 402.5   Downloaded bs58 v0.5.1
+#24 402.5   Downloaded vec_map v0.8.2
+#24 402.5   Downloaded fastrlp v0.4.0
+#24 402.5   Downloaded rustc_version v0.3.3
+#24 402.5   Downloaded crossbeam-channel v0.5.15
+#24 402.5   Downloaded sync_wrapper v1.0.2
+#24 402.5   Downloaded httparse v1.10.1
+#24 402.5   Downloaded serde_spanned v0.6.9
+#24 402.5   Downloaded p3-mds v0.2.3-succinct
+#24 402.5   Downloaded sp1-core-machine v5.2.4
+#24 402.5   Downloaded beef v0.5.2
+#24 402.5   Downloaded tendermint-light-client-verifier v0.40.4
+#24 402.5   Downloaded unarray v0.1.4
+#24 402.5   Downloaded time-core v0.1.6
+#24 402.5   Downloaded bitcoin-io v0.1.4
+#24 402.5   Downloaded aws-smithy-json v0.61.9
+#24 402.5   Downloaded data-encoding-macro-internal v0.1.16
+#24 402.5   Downloaded ed25519-consensus v2.1.0
+#24 402.5   Downloaded bimap v0.6.3
+#24 402.5   Downloaded axum-core v0.4.5
+#24 402.5   Downloaded uncased v0.9.10
+#24 402.5   Downloaded digest v0.9.0
+#24 402.5   Downloaded axum-core v0.5.5
+#24 402.6   Downloaded crc v3.4.0
+#24 402.6   Downloaded downcast-rs v1.2.1
+#24 402.6   Downloaded const-oid v0.9.6
+#24 402.6   Downloaded rand_chacha v0.9.0
+#24 402.6   Downloaded flate2 v1.1.5
+#24 402.6   Downloaded hash_hasher v2.0.4
+#24 402.6   Downloaded bytemuck v1.24.0
+#24 402.6   Downloaded instant v0.1.13
+#24 402.6   Downloaded ident_case v1.0.1
+#24 402.6   Downloaded celestia-rpc v0.13.0
+#24 402.6   Downloaded p3-interpolation v0.2.3-succinct
+#24 402.6   Downloaded p3-dft v0.2.3-succinct
+#24 402.6   Downloaded core2 v0.4.0
+#24 402.6   Downloaded ff v0.12.1
+#24 402.6   Downloaded fixed-hash v0.8.0
+#24 402.6   Downloaded quinn v0.11.9
+#24 402.6   Downloaded futures-sink v0.3.31
+#24 402.6   Downloaded darling_macro v0.21.3
+#24 402.6   Downloaded flagset v0.4.7
+#24 402.6   Downloaded powerfmt v0.2.0
+#24 402.6   Downloaded pear v0.2.9
+#24 402.6   Downloaded s2n-quic-platform v0.71.0
+#24 402.6   Downloaded p3-fri v0.2.3-succinct
+#24 402.6   Downloaded reqwest-middleware v0.3.3
+#24 402.6   Downloaded prost-build v0.12.6
+#24 402.6   Downloaded protox-parse v0.7.0
+#24 402.6   Downloaded base64 v0.22.1
+#24 402.6   Downloaded rrs-succinct v0.1.0
+#24 402.6   Downloaded tonic v0.12.3
+#24 402.6   Downloaded scopeguard v1.2.0
+#24 402.6   Downloaded sync_wrapper v0.1.2
+#24 402.6   Downloaded cexpr v0.6.0
+#24 402.7   Downloaded hashbrown v0.12.3
+#24 402.7   Downloaded halo2_proofs v0.1.0
+#24 402.7   Downloaded hyper v1.8.1
+#24 402.7   Downloaded thread_local v1.1.9
+#24 402.7   Downloaded thiserror-impl v2.0.17
+#24 402.7   Downloaded thiserror v2.0.17
+#24 402.7   Downloaded sha1 v0.10.6
+#24 402.7   Downloaded rustc-hex v2.1.0
+#24 402.7   Downloaded threadpool v1.8.1
+#24 402.7   Downloaded subtle-encoding v0.5.1
+#24 402.7   Downloaded twox-hash v1.6.3
+#24 402.7   Downloaded binascii v0.1.4
+#24 402.7   Downloaded zerofrom-derive v0.1.6
+#24 402.7   Downloaded byteorder v1.5.0
+#24 402.7   Downloaded version_check v0.9.5
+#24 402.7   Downloaded enum-map v2.7.3
+#24 402.7   Downloaded ubyte v0.10.4
+#24 402.7   Downloaded tungstenite v0.26.2
+#24 402.7   Downloaded base64-simd v0.8.0
+#24 402.7   Downloaded valuable v0.1.1
+#24 402.7   Downloaded foreign-types v0.3.2
+#24 402.7   Downloaded uuid v1.19.0
+#24 402.7   Downloaded foldhash v0.1.5
+#24 402.7   Downloaded celestia-grpc-macros v0.4.0
+#24 402.7   Downloaded base16ct v0.2.0
+#24 402.7   Downloaded ev-types v0.0.1
+#24 402.7   Downloaded cid v0.11.1
+#24 402.7   Downloaded hyper-timeout v0.4.1
+#24 402.7   Downloaded base64ct v1.8.1
+#24 402.7   Downloaded toml_parser v1.0.6+spec-1.1.0
+#24 402.7   Downloaded thiserror-impl v1.0.69
+#24 402.7   Downloaded const-str v0.4.3
+#24 402.7   Downloaded const-hex v1.17.0
+#24 402.7   Downloaded cookie v0.18.1
+#24 402.7   Downloaded fs-err v3.2.1
+#24 402.7   Downloaded find-msvc-tools v0.1.5
+#24 402.7   Downloaded itoa v1.0.16
+#24 402.7   Downloaded pin-project-lite v0.2.16
+#24 402.7   Downloaded logos-derive v0.14.4
+#24 402.7   Downloaded jobserver v0.1.34
+#24 402.7   Downloaded convert_case v0.10.0
+#24 402.7   Downloaded cargo_metadata v0.18.1
+#24 402.7   Downloaded httpdate v1.0.3
+#24 402.7   Downloaded reqwest v0.12.28
+#24 402.7   Downloaded p3-matrix v0.2.3-succinct
+#24 402.7   Downloaded logos-codegen v0.15.1
+#24 402.7   Downloaded idna_adapter v1.2.1
+#24 402.7   Downloaded ics23 v0.12.0
+#24 402.7   Downloaded num-integer v0.1.46
+#24 402.7   Downloaded pin-utils v0.1.0
+#24 402.7   Downloaded potential_utf v0.1.4
+#24 402.7   Downloaded quick-error v1.2.3
+#24 402.7   Downloaded p3-keccak-air v0.2.3-succinct
+#24 402.7   Downloaded rand_xorshift v0.4.0
+#24 402.7   Downloaded num-rational v0.4.2
+#24 402.8   Downloaded rand_core v0.9.3
+#24 402.8   Downloaded tracing-attributes v0.1.31
+#24 402.8   Downloaded tonic v0.13.1
+#24 402.8   Downloaded aws-types v1.3.11
+#24 402.8   Downloaded cfg_aliases v0.2.1
+#24 402.8   Downloaded subtle-ng v2.5.0
+#24 402.8   Downloaded siphasher v1.0.1
+#24 402.8   Downloaded ring v0.17.14
+#24 402.8   Downloaded nmt-rs v0.2.5
+#24 402.8   Downloaded sec1 v0.7.3
+#24 402.8   Downloaded native-tls v0.2.14
+#24 402.8   Downloaded crc-catalog v2.4.0
+#24 402.8   Downloaded group v0.13.0
+#24 402.8   Downloaded bytes-utils v0.1.4
+#24 402.8   Downloaded bincode v1.3.3
+#24 402.8   Downloaded num_enum v0.7.5
+#24 402.8   Downloaded lru-slab v0.1.2
+#24 402.8   Downloaded keccak v0.1.5
+#24 402.8   Downloaded num_cpus v1.17.0
+#24 402.8   Downloaded lru v0.13.0
+#24 402.8   Downloaded base256emoji v1.0.2
+#24 402.8   Downloaded jsonrpsee-ws-client v0.25.1
+#24 402.8   Downloaded size v0.4.1
+#24 402.8   Downloaded clap v4.5.53
+#24 402.8   Downloaded futures-utils-wasm v0.1.0
+#24 402.8   Downloaded impl-codec v0.6.0
+#24 402.8   Downloaded tokio-macros v2.6.0
+#24 402.8   Downloaded revm-inspector v7.0.1
+#24 402.8   Downloaded hex v0.4.3
+#24 402.8   Downloaded strsim v0.11.1
+#24 402.8   Downloaded proc-macro-crate v1.3.1
+#24 402.8   Downloaded gcd v2.3.0
+#24 402.8   Downloaded num_enum_derive v0.5.11
+#24 402.8   Downloaded icu_locale_core v2.1.1
+#24 402.8   Downloaded serdect v0.2.0
+#24 402.8   Downloaded revm-handler v7.0.1
+#24 402.8   Downloaded critical-section v1.2.0
+#24 402.9   Downloaded hashbrown v0.16.1
+#24 402.9   Downloaded lru v0.12.5
+#24 402.9   Downloaded logos v0.14.4
+#24 402.9   Downloaded openssl-macros v0.1.1
+#24 402.9   Downloaded proc-macro2-diagnostics v0.10.1
+#24 402.9   Downloaded rustc-hash v1.1.0
+#24 402.9   Downloaded itertools v0.14.0
+#24 402.9   Downloaded rustc-demangle v0.1.26
+#24 402.9   Downloaded rustc_version v0.4.1
+#24 402.9   Downloaded itertools v0.13.0
+#24 402.9   Downloaded try-lock v0.2.5
+#24 402.9   Downloaded getrandom v0.2.16
+#24 402.9   Downloaded blockstore v0.8.0
+#24 402.9   Downloaded tinyvec v1.10.0
+#24 402.9   Downloaded prost-derive v0.12.6
+#24 402.9   Downloaded pin-project v1.1.10
+#24 402.9   Downloaded base64 v0.13.1
+#24 402.9   Downloaded syn-solidity v1.5.2
+#24 402.9   Downloaded revm v26.0.1
+#24 402.9   Downloaded vcpkg v0.2.15
+#24 402.9   Downloaded revm-database-interface v6.0.0
+#24 402.9   Downloaded icu_normalizer v2.1.1
+#24 402.9   Downloaded blake2 v0.10.6
+#24 402.9   Downloaded celestia-grpc v0.8.0
+#24 402.9   Downloaded bon v3.8.1
+#24 402.9   Downloaded num_enum v0.5.11
+#24 402.9   Downloaded educe v0.6.0
+#24 402.9   Downloaded colorchoice v1.0.4
+#24 402.9   Downloaded cmake v0.1.57
+#24 402.9   Downloaded cfg-if v1.0.4
+#24 403.0   Downloaded zstd-safe v7.2.4
+#24 403.0   Downloaded tokio-stream v0.1.17
+#24 403.0   Downloaded tokio-rustls v0.26.4
+#24 403.0   Downloaded tokio-rustls v0.24.1
+#24 403.0   Downloaded tokio-native-tls v0.3.1
+#24 403.0   Downloaded tap v1.0.1
+#24 403.0   Downloaded const_format v0.2.35
+#24 403.0   Downloaded bytes v1.11.0
+#24 403.0   Downloaded bech32 v0.11.1
+#24 403.0   Downloaded sha2 v0.9.9
+#24 403.0   Downloaded uint v0.9.5
+#24 403.0   Downloaded subtle v2.6.1
+#24 403.0   Downloaded rlp v0.5.2
+#24 403.0   Downloaded heck v0.5.0
+#24 403.0   Downloaded prost-types v0.13.5
+#24 403.0   Downloaded openssl-probe v0.1.6
+#24 403.0   Downloaded rocksdb v0.24.0
+#24 403.0   Downloaded tracing-log v0.2.0
+#24 403.0   Downloaded subenum v1.1.3
+#24 403.0   Downloaded generic-array v1.1.0
+#24 403.0   Downloaded rust_decimal v1.39.0
+#24 403.0   Downloaded rusticata-macros v4.1.0
+#24 403.0   Downloaded p3-commit v0.2.3-succinct
+#24 403.0   Downloaded moka v0.12.12
+#24 403.0   Downloaded generic-array v0.14.9
+#24 403.0   Downloaded ppv-lite86 v0.2.21
+#24 403.0   Downloaded zerotrie v0.2.3
+#24 403.0   Downloaded bit-vec v0.8.0
+#24 403.0   Downloaded schemars v0.9.0
+#24 403.0   Downloaded derive-where v1.6.0
+#24 403.0   Downloaded clang-sys v1.8.1
+#24 403.0   Downloaded aws-smithy-xml v0.60.13
+#24 403.0   Downloaded bon-macros v3.8.1
+#24 403.0   Downloaded tokio-io-timeout v1.2.1
+#24 403.0   Downloaded hickory-proto v0.25.2
+#24 403.0   Downloaded multimap v0.10.1
+#24 403.0   Downloaded tendermint v0.40.4
+#24 403.0   Downloaded iana-time-zone v0.1.64
+#24 403.1   Downloaded num_enum_derive v0.7.5
+#24 403.1   Downloaded pasta_curves v0.4.1
+#24 403.1   Downloaded ripemd v0.1.3
+#24 403.1   Downloaded hyper-rustls v0.27.7
+#24 403.1   Downloaded zeroize v1.8.2
+#24 403.1   Downloaded clap_builder v4.5.53
+#24 403.1   Downloaded tower-service v0.3.3
+#24 403.1   Downloaded indexmap v1.9.3
+#24 403.1   Downloaded cbindgen v0.27.0
+#24 403.1   Downloaded http-body v0.4.6
+#24 403.1   Downloaded group v0.12.1
+#24 403.1   Downloaded http-body-util v0.1.3
+#24 403.1   Downloaded hmac v0.12.1
+#24 403.1   Downloaded reqwest v0.11.27
+#24 403.1   Downloaded proc-macro-error-attr2 v2.0.0
+#24 403.1   Downloaded proc-macro-crate v3.4.0
+#24 403.1   Downloaded revm-database v6.0.0
+#24 403.1   Downloaded primitive-types v0.12.2
+#24 403.1   Downloaded pear_codegen v0.2.9
+#24 403.1   Downloaded indicatif v0.17.11
+#24 403.1   Downloaded proc-macro-error2 v2.0.1
+#24 403.1   Downloaded base-x v0.2.11
+#24 403.1   Downloaded crc32fast v1.5.0
+#24 403.1   Downloaded getrandom v0.3.4
+#24 403.1   Downloaded inlinable_string v0.1.15
+#24 403.1   Downloaded nix v0.30.1
+#24 403.2   Downloaded console v0.15.11
+#24 403.2   Downloaded hashbrown v0.15.5
+#24 403.2   Downloaded bitflags v2.10.0
+#24 403.2   Downloaded libloading v0.8.9
+#24 403.2   Downloaded syn v1.0.109
+#24 403.2   Downloaded pkg-config v0.3.32
+#24 403.2   Downloaded tracing-subscriber v0.3.22
+#24 403.2   Downloaded proc-macro2 v1.0.103
+#24 403.2   Downloaded toml v0.8.23
+#24 403.2   Downloaded openssl v0.10.75
+#24 403.2   Downloaded ucd-trie v0.1.7
+#24 403.2   Downloaded p3-uni-stark v0.2.3-succinct
+#24 403.2   Downloaded prost-build v0.13.5
+#24 403.2   Downloaded num-traits v0.2.19
+#24 403.2   Downloaded indexmap v2.12.1
+#24 403.2   Downloaded memchr v2.7.6
+#24 403.2   Downloaded pkcs8 v0.10.2
+#24 403.2   Downloaded http v0.2.12
+#24 403.2   Downloaded schemars v1.1.0
+#24 403.2   Downloaded tendermint-rpc v0.40.4
+#24 403.2   Downloaded op-alloy-rpc-types v0.18.14
+#24 403.2   Downloaded tower-http v0.6.8
+#24 403.2   Downloaded rayon v1.11.0
+#24 403.2   Downloaded crypto-bigint v0.5.5
+#24 403.3   Downloaded parking_lot_core v0.9.12
+#24 403.3   Downloaded bindgen v0.71.1
+#24 403.3   Downloaded bindgen v0.70.1
+#24 403.3   Downloaded rustls v0.21.12
+#24 403.3   Downloaded zmij v0.1.7
+#24 403.3   Downloaded pasta_curves v0.5.1
+#24 403.3   Downloaded aws-smithy-runtime-api v1.9.3
+#24 403.3   Downloaded revm-interpreter v22.0.1
+#24 403.3   Downloaded http v1.4.0
+#24 403.3   Downloaded secp256k1-sys v0.10.1
+#24 403.3   Downloaded protox v0.7.2
+#24 403.3   Downloaded hickory-resolver v0.25.2
+#24 403.3   Downloaded iri-string v0.7.9
+#24 403.3   Downloaded zerovec v0.11.5
+#24 403.3   Downloaded rcgen v0.13.2
+#24 403.3   Downloaded openssl-sys v0.9.111
+#24 403.3   Downloaded libc v0.2.178
+#24 403.4   Downloaded blake3 v1.8.2
+#24 403.4   Downloaded zstd-sys v2.0.16+zstd.1.5.7
+#24 403.4   Downloaded range-set-blaze v0.1.16
+#24 403.4   Downloaded base64 v0.21.7
+#24 403.4   Downloaded url v2.5.7
+#24 403.4   Downloaded aws-smithy-runtime v1.9.5
+#24 403.4   Downloaded backtrace v0.3.76
+#24 403.4   Downloaded tower v0.5.2
+#24 403.4   Downloaded prettyplease v0.2.37
+#24 403.4   Downloaded derive_more v2.1.1
+#24 403.4   Downloaded h2 v0.4.12
+#24 403.4   Downloaded logos v0.15.1
+#24 403.4   Downloaded h2 v0.3.27
+#24 403.4   Downloaded serde_json v1.0.147
+#24 403.4   Downloaded mio v1.1.1
+#24 403.4   Downloaded libp2p-identity v0.2.13
+#24 403.4   Downloaded bzip2-sys v0.1.13+1.0.8
+#24 403.5   Downloaded rustls v0.23.35
+#24 403.5   Downloaded backoff v0.4.0
+#24 403.5   Downloaded hyper-util v0.1.19
+#24 403.5   Downloaded axum v0.8.8
+#24 403.5   Downloaded s2n-quic-core v0.71.0
+#24 403.5   Downloaded http-body v1.0.1
+#24 403.5   Downloaded block-buffer v0.9.0
+#24 403.5   Downloaded bitflags v1.3.2
+#24 403.5   Downloaded futures v0.3.31
+#24 403.5   Downloaded figment v0.10.19
+#24 403.5   Downloaded revm-context v7.0.1
+#24 403.5   Downloaded revm-bytecode v5.0.0
+#24 403.5   Downloaded parking_lot v0.12.5
+#24 403.5   Downloaded idna v1.1.0
+#24 403.5   Downloaded matchit v0.7.3
+#24 403.5   Downloaded matchit v0.8.4
+#24 403.5   Downloaded prost v0.12.6
+#24 403.5   Downloaded zstd v0.13.3
+#24 403.5   Downloaded tracing-appender v0.2.4
+#24 403.5   Downloaded blockstore v0.7.1
+#24 403.5   Downloaded tower v0.4.13
+#24 403.5   Downloaded itertools v0.10.5
+#24 403.5   Downloaded dashu-int v0.4.1
+#24 403.5   Downloaded celestia-types v0.15.0
+#24 403.5   Downloaded futures-util v0.3.31
+#24 403.5   Downloaded c-kzg v2.1.5
+#24 403.6   Downloaded axum v0.6.20
+#24 403.6   Downloaded hkdf v0.12.4
+#24 403.6   Downloaded sysinfo v0.30.13
+#24 403.6   Downloaded chrono v0.4.42
+#24 403.6   Downloaded block-buffer v0.10.4
+#24 403.6   Downloaded multihash v0.19.3
+#24 403.6   Downloaded tinyvec_macros v0.1.1
+#24 403.6   Downloaded strum_macros v0.27.2
+#24 403.6   Downloaded axum v0.7.9
+#24 403.6   Downloaded strum_macros v0.26.4
+#24 403.6   Downloaded strum v0.27.2
+#24 403.6   Downloaded serial_test_derive v3.2.0
+#24 403.6   Downloaded serial_test v3.2.0
+#24 403.6   Downloaded serde_repr v0.1.20
+#24 403.6   Downloaded serde_path_to_error v0.1.20
+#24 403.6   Downloaded scale-info-derive v2.11.6
+#24 403.6   Downloaded libm v0.2.15
+#24 403.6   Downloaded scale-info v2.11.6
+#24 403.6   Downloaded darling_core v0.21.3
+#24 403.6   Downloaded pathdiff v0.2.3
+#24 403.6   Downloaded matchers v0.2.0
+#24 403.6   Downloaded parity-scale-codec-derive v3.7.5
+#24 403.6   Downloaded untrusted v0.9.0
+#24 403.6   Downloaded tower-layer v0.3.3
+#24 403.6   Downloaded itertools v0.12.1
+#24 403.6   Downloaded ref-cast v1.0.25
+#24 403.6   Downloaded p3-symmetric v0.2.3-succinct
+#24 403.6   Downloaded curve25519-dalek-ng v4.1.1
+#24 403.6   Downloaded bitvec v1.0.1
+#24 403.6   Downloaded memuse v0.2.2
+#24 403.6   Downloaded zkhash v0.2.0
+#24 403.6   Downloaded portable-atomic v1.12.0
+#24 403.6   Downloaded utf-8 v0.7.6
+#24 403.6   Downloaded urlencoding v2.1.3
+#24 403.6   Downloaded rayon-scan v0.1.1
+#24 403.6   Downloaded rustls-pemfile v2.2.0
+#24 403.6   Downloaded keccak-asm v0.1.4
+#24 403.6   Downloaded impl-trait-for-tuples v0.2.3
+#24 403.7   Downloaded hyper-rustls v0.24.2
+#24 403.7   Downloaded tempfile v3.24.0
+#24 403.7   Downloaded tonic-build v0.10.2
+#24 403.7   Downloaded tracing-core v0.1.36
+#24 403.7   Downloaded tendermint-proto v0.40.4
+#24 403.7   Downloaded serde_yaml v0.9.34+deprecated
+#24 403.7   Downloaded icu_collections v2.1.1
+#24 403.7   Downloaded sha3-asm v0.1.4
+#24 403.7   Downloaded multer v3.1.0
+#24 403.7   Downloaded number_prefix v0.4.0
+#24 403.7   Downloaded hex-conservative v0.2.2
+#24 403.7   Downloaded zerovec-derive v0.11.2
+#24 403.7   Downloaded jubjub v0.9.0
+#24 403.7   Downloaded leopard-codec v0.2.0
+#24 403.7   Downloaded leopard-codec v0.1.0
+#24 403.7   Downloaded tokio-util v0.7.17
+#24 403.7   Downloaded thiserror v1.0.69
+#24 403.7   Downloaded strum v0.26.3
+#24 403.7   Downloaded syn v2.0.111
+#24 403.7   Downloaded linux-raw-sys v0.11.0
+#24 403.8   Downloaded s2n-quic-transport v0.71.0
+#24 403.8   Downloaded indenter v0.3.4
+#24 403.8   Downloaded blst v0.3.16
+#24 403.8   Downloaded hyper-tls v0.6.0
+#24 403.8   Downloaded miette v7.6.0
+#24 403.8   Downloaded unsafe-libyaml v0.2.11
+#24 403.8   Downloaded rustix v1.1.3
+#24 403.8   Downloaded lazy_static v1.5.0
+#24 403.8   Downloaded celestia-proto v0.9.1
+#24 403.8   Downloaded cc v1.2.50
+#24 403.8   Downloaded bls12_381 v0.7.1
+#24 403.8   Downloaded aws-smithy-http-client v1.1.5
+#24 403.8   Downloaded aws-smithy-types v1.3.5
+#24 403.8   Downloaded toml_edit v0.23.10+spec-1.0.0
+#24 403.8   Downloaded eyre v0.6.12
+#24 403.8   Downloaded aws-smithy-query v0.60.9
+#24 403.8   Downloaded utf8parse v0.2.2
+#24 403.8   Downloaded utf8_iter v1.0.4
+#24 403.8   Downloaded toml_datetime v0.6.11
+#24 403.8   Downloaded tagptr v0.2.0
+#24 403.8   Downloaded sharded-slab v0.1.7
+#24 403.8   Downloaded same-file v1.0.6
+#24 403.8   Downloaded s2n-quic-rustls v0.71.0
+#24 403.8   Downloaded s2n-quic v1.71.0
+#24 403.8   Downloaded s2n-codec v0.71.0
+#24 403.8   Downloaded simd-adler32 v0.3.8
+#24 403.8   Downloaded sdd v3.0.10
+#24 403.8   Downloaded revm-state v6.0.0
+#24 403.9   Downloaded resolv-conf v0.7.6
+#24 403.9   Downloaded serde_derive v1.0.228
+#24 403.9   Downloaded rand_core v0.6.4
+#24 403.9   Downloaded rand_core v0.5.1
+#24 403.9   Downloaded num-order v1.2.0
+#24 403.9   Downloaded rustls-native-certs v0.8.2
+#24 403.9   Downloaded num-modular v0.6.1
+#24 403.9   Downloaded nohash-hasher v0.2.0
+#24 403.9   Downloaded state v0.6.0
+#24 403.9   Downloaded modular-bitfield-impl v0.11.2
+#24 403.9   Downloaded logos-codegen v0.14.4
+#24 403.9   Downloaded is_terminal_polyfill v1.70.2
+#24 403.9   Downloaded icu_normalizer_data v2.1.1
+#24 403.9   Downloaded hyper v0.14.32
+#24 403.9   Downloaded hashbrown v0.14.5
+#24 403.9   Downloaded jsonrpsee-proc-macros v0.25.1
+#24 403.9   Downloaded h3 v0.0.6
+#24 403.9   Downloaded celestia-types v0.16.0
+#24 403.9   Downloaded signature v2.2.0
+#24 403.9   Downloaded signal-hook-registry v1.4.7
+#24 403.9   Downloaded shlex v1.3.0
+#24 403.9   Downloaded sct v0.7.1
+#24 403.9   Downloaded rustls-pemfile v1.0.4
+#24 403.9   Downloaded celestia-proto v0.10.0
+#24 403.9   Downloaded bytemuck_derive v1.10.2
+#24 403.9   Downloaded borsh v1.6.0
+#24 403.9   Downloaded tokio v1.48.0
+#24 403.9   Downloaded libz-sys v1.1.23
+#24 403.9   Downloaded time v0.3.44
+#24 403.9   Downloaded aws-lc-sys v0.35.0
+#24 404.1   Downloaded serde_with v3.16.1
+#24 404.1   Downloaded quinn-proto v0.11.13
+#24 404.1   Downloaded proptest v1.9.0
+#24 404.1   Downloaded tracing v0.1.44
+#24 404.2   Downloaded sp1_bls12_381 v0.8.0-sp1-5.0.0
+#24 404.2   Downloaded deranged v0.5.5
+#24 404.2   Downloaded rustc-hash v2.1.1
+#24 404.2   Downloaded protox v0.8.0
+#24 404.2   Downloaded zeroize_derive v1.4.2
+#24 404.2   Downloaded unsigned-varint v0.8.0
+#24 404.2   Downloaded static_assertions v1.1.0
+#24 404.2   Downloaded stable_deref_trait v1.2.1
+#24 404.2   Downloaded outref v0.5.2
+#24 404.2   Downloaded regex-automata v0.4.13
+#24 404.2   Downloaded protox-parse v0.8.0
+#24 404.2   Downloaded tonic v0.10.2
+#24 404.2   Downloaded scc v2.4.0
+#24 404.2   Downloaded ruint v1.17.0
+#24 404.2   Downloaded is-terminal v0.4.17
+#24 404.2   Downloaded byte-slice-cast v1.2.3
+#24 404.2   Downloaded typenum v1.19.0
+#24 404.2   Downloaded encoding_rs v0.8.35
+#24 404.2   Downloaded revm-context-interface v7.0.1
+#24 404.2   Downloaded sp1-prover v5.2.2
+#24 404.2   Downloaded op-revm v7.0.1
+#24 404.2   Downloaded intrusive-collections v0.9.7
+#24 404.2   Downloaded gimli v0.32.3
+#24 404.2   Downloaded enum-ordinalize-derive v4.3.2
+#24 404.2   Downloaded revm-precompile v23.0.0
+#24 404.2   Downloaded devise_codegen v0.4.2
+#24 404.2   Downloaded p3-field v0.2.3-succinct
+#24 404.2   Downloaded rand v0.9.2
+#24 404.2   Downloaded petgraph v0.7.1
+#24 404.3   Downloaded funty v2.0.0
+#24 404.3   Downloaded opaque-debug v0.3.1
+#24 404.3   Downloaded half v1.8.3
+#24 404.3   Downloaded icu_provider v2.1.1
+#24 404.3   Downloaded http-client-unix-domain-socket v0.1.2
+#24 404.3   Downloaded icu_properties_data v2.1.2
+#24 404.3   Downloaded webpki-roots v1.0.4
+#24 404.3   Downloaded stable-pattern v0.1.0
+#24 404.3   Downloaded p3-poseidon2 v0.2.3-succinct
+#24 404.3   Downloaded bindgen v0.72.1
+#24 404.3   Downloaded zerocopy v0.8.31
+#24 404.3   Downloaded unicode-width v0.1.14
+#24 404.3   Downloaded getrandom v0.1.16
+#24 404.3   Downloaded bitcoin_hashes v0.14.1
+#24 404.3   Downloaded minimal-lexical v0.2.1
+#24 404.3   Downloaded pin-project-internal v1.1.10
+#24 404.3   Downloaded petgraph v0.6.5
+#24 404.3   Downloaded cpufeatures v0.2.17
+#24 404.3   Downloaded miniz_oxide v0.8.9
+#24 404.3   Downloaded unicode-width v0.2.2
+#24 404.3   Downloaded crypto-common v0.1.6
+#24 404.3   Downloaded tendermint-config v0.40.4
+#24 404.3   Downloaded axum-core v0.3.4
+#24 404.3   Downloaded untrusted v0.7.1
+#24 404.3   Downloaded ctrlc v3.5.1
+#24 404.3   Downloaded tinystr v0.8.2
+#24 404.3   Downloaded tiny-keccak v2.0.2
+#24 404.3   Downloaded time-macros v0.2.24
+#24 404.3   Downloaded serde_with_macros v3.16.1
+#24 404.3   Downloaded synstructure v0.13.2
+#24 404.3   Downloaded spki v0.7.3
+#24 404.3   Downloaded slab v0.4.11
+#24 404.3   Downloaded dirs-sys v0.4.1
+#24 404.3   Downloaded aws-smithy-observability v0.1.5
+#24 404.3   Downloaded toml_write v0.1.2
+#24 404.3   Downloaded s2n-quic-crypto v0.71.0
+#24 404.3   Downloaded op-alloy-network v0.18.14
+#24 404.3   Downloaded blake2b_simd v1.0.3
+#24 404.3   Downloaded winnow v0.7.14
+#24 404.3   Downloaded ruint-macro v1.2.1
+#24 404.3   Downloaded quinn-udp v0.5.14
+#24 404.3   Downloaded fixedbitset v0.4.2
+#24 404.3   Downloaded der v0.7.10
+#24 404.4   Downloaded socket2 v0.5.10
+#24 404.4   Downloaded ed25519-dalek v2.2.0
+#24 404.4   Downloaded serde_core v1.0.228
+#24 404.4   Downloaded dashu-float v0.4.3
+#24 404.4   Downloaded elf v0.7.4
+#24 404.4   Downloaded displaydoc v0.2.5
+#24 404.4   Downloaded smallvec v1.15.1
+#24 404.4   Downloaded semver v0.11.0
+#24 404.4   Downloaded fastrand v2.3.0
+#24 404.4   Downloaded fastrlp v0.3.1
+#24 404.4   Downloaded dashu v0.4.2
+#24 404.4   Downloaded equivalent v1.0.2
+#24 404.4   Downloaded dashu-ratio v0.4.1
+#24 404.4   Downloaded derivative v2.2.0
+#24 404.4   Downloaded darling v0.21.3
+#24 404.4   Downloaded ark-bls12-381 v0.5.0
+#24 404.4   Downloaded percent-encoding v2.3.2
+#24 404.4   Downloaded pem-rfc7468 v0.7.0
+#24 404.4   Downloaded pem v3.0.6
+#24 404.4   Downloaded peg-runtime v0.8.5
+#24 404.4   Downloaded peg-macros v0.8.5
+#24 404.4   Downloaded peg v0.8.5
+#24 404.4   Downloaded parity-scale-codec v3.7.5
+#24 404.4   Downloaded pairing v0.23.0
+#24 404.4   Downloaded pairing v0.22.0
+#24 404.4   Downloaded p3-util v0.2.3-succinct
+#24 404.4   Downloaded p3-merkle-tree v0.2.3-succinct
+#24 404.4   Downloaded p3-bn254-fr v0.2.3-succinct
+#24 404.4   Downloaded p3-baby-bear v0.2.3-succinct
+#24 404.4   Downloaded num-bigint v0.4.6
+#24 404.4   Downloaded num-bigint v0.3.3
+#24 404.4   Downloaded nom v7.1.3
+#24 404.4   Downloaded lz4-sys v1.11.1+lz4-1.10.0
+#24 404.4   Downloaded aws-lc-rs v1.15.2
+#24 404.4   Downloaded alloy-genesis v1.0.41
+#24 404.4   Downloaded alloy-eips v1.0.41
+#24 404.4   Downloaded p3-air v0.2.3-succinct
+#24 404.4   Downloaded nybbles v0.4.6
+#24 404.4   Downloaded cuckoofilter v0.5.0
+#24 404.4   Downloaded crunchy v0.2.4
+#24 404.4   Downloaded aws-sdk-sts v1.95.0
+#24 404.4   Downloaded log v0.4.29
+#24 404.5   Downloaded aws-sigv4 v1.3.7
+#24 404.5   Downloaded aws-sdk-ssooidc v1.93.0
+#24 404.5   Downloaded aws-sdk-sso v1.91.0
+#24 404.5   Downloaded aws-runtime v1.5.17
+#24 404.5   Downloaded asn1-rs v0.6.2
+#24 404.5   Downloaded ark-poly v0.5.0
+#24 404.5   Downloaded ark-ff v0.4.2
+#24 404.5   Downloaded ark-ec v0.5.0
+#24 404.5   Downloaded anyhow v1.0.100
+#24 404.5   Downloaded alloy-trie v0.9.1
+#24 404.5   Downloaded alloy-transport-http v1.0.41
+#24 404.5   Downloaded alloy-transport v1.0.41
+#24 404.5   Downloaded alloy-sol-types v1.3.0
+#24 404.5   Downloaded alloy-rpc-types-engine v1.0.41
+#24 404.5   Downloaded alloy-rpc-client v1.0.41
+#24 404.5   Downloaded alloy-evm v0.12.3
+#24 404.5   Downloaded alloy-dyn-abi v1.3.0
+#24 404.5   Downloaded alloy-contract v1.0.32
+#24 404.5   Downloaded alloy-chains v0.2.23
+#24 404.5   Downloaded allocator-api2 v0.2.21
+#24 404.5   Downloaded multibase v0.9.2
+#24 404.5   Downloaded mime v0.3.17
+#24 404.5   Downloaded memoffset v0.9.1
+#24 404.5   Downloaded litemap v0.8.1
+#24 404.5   Downloaded arrayvec v0.7.6
+#24 404.5   Downloaded ark-ff v0.3.0
+#24 404.5   Downloaded alloy-pubsub v1.0.41
+#24 404.5   Downloaded alloy-json-abi v1.3.0
+#24 404.5   Downloaded ahash v0.8.12
+#24 404.5   Downloaded addr2line v0.25.1
+#24 404.5   Downloaded aws-smithy-async v1.2.7
+#24 404.5   Downloaded auto_impl v1.3.0
+#24 404.5   Downloaded alloy-sol-macro-expander v1.3.0
+#24 404.5   Downloaded alloy-signer-local v1.0.41
+#24 404.5   Downloaded alloy-signer-aws v1.0.41
+#24 404.5   Downloaded alloy-network v1.0.41
+#24 404.5   Downloaded alloy-json-rpc v1.0.41
+#24 404.5   Downloaded alloy-rpc-types-any v1.0.41
+#24 404.9   Downloaded librocksdb-sys v0.17.3+10.4.2
+#24 405.1   Downloaded kzg-rs v0.2.7
+#24 405.6    Compiling proc-macro2 v1.0.103
+#24 405.6    Compiling quote v1.0.42
+#24 405.6    Compiling unicode-ident v1.0.22
+#24 405.6    Compiling serde_core v1.0.228
+#24 405.6    Compiling serde v1.0.228
+#24 405.6    Compiling cfg-if v1.0.4
+#24 405.6    Compiling libc v0.2.178
+#24 405.6    Compiling autocfg v1.5.0
+#24 405.6    Compiling version_check v0.9.5
+#24 405.6    Compiling typenum v1.19.0
+#24 405.9    Compiling portable-atomic v1.12.0
+#24 406.0    Compiling critical-section v1.2.0
+#24 406.3    Compiling shlex v1.3.0
+#24 406.6    Compiling find-msvc-tools v0.1.5
+#24 406.8    Compiling subtle v2.6.1
+#24 406.8    Compiling generic-array v0.14.9
+#24 406.9    Compiling itoa v1.0.16
+#24 407.0    Compiling num-traits v0.2.19
+#24 407.3    Compiling syn v1.0.109
+#24 407.5    Compiling zerocopy v0.8.31
+#24 407.6    Compiling pin-project-lite v0.2.16
+#24 408.2    Compiling equivalent v1.0.2
+#24 408.3    Compiling jobserver v0.1.34
+#24 408.3    Compiling radium v0.7.0
+#24 408.7    Compiling once_cell v1.21.3
+#24 408.7    Compiling getrandom v0.2.16
+#24 408.8    Compiling const-oid v0.9.6
+#24 409.3    Compiling cc v1.2.50
+#24 409.3    Compiling memchr v2.7.6
+#24 409.3    Compiling log v0.4.29
+#24 409.4    Compiling hashbrown v0.16.1
+#24 409.6    Compiling num-integer v0.1.46
+#24 409.7    Compiling rand_core v0.6.4
+#24 409.7    Compiling num-bigint v0.3.3
+#24 410.0    Compiling syn v2.0.111
+#24 410.1    Compiling tracing-core v0.1.36
+#24 410.2    Compiling paste v1.0.15
+#24 410.6    Compiling indexmap v2.12.1
+#24 410.8    Compiling cpufeatures v0.2.17
+#24 410.8    Compiling unicode-xid v0.2.6
+#24 411.0    Compiling rustversion v1.0.22
+#24 411.1    Compiling heck v0.5.0
+#24 411.1    Compiling crossbeam-utils v0.8.21
+#24 411.5    Compiling winnow v0.7.14
+#24 411.6    Compiling tap v1.0.1
+#24 412.0    Compiling funty v2.0.0
+#24 412.1    Compiling either v1.15.0
+#24 412.2    Compiling wyz v0.5.1
+#24 412.6    Compiling byteorder v1.5.0
+#24 412.9    Compiling base64ct v1.8.1
+#24 413.0    Compiling flagset v0.4.7
+#24 413.1    Compiling addchain v0.2.0
+#24 413.6    Compiling thiserror v2.0.17
+#24 413.8    Compiling crunchy v0.2.4
+#24 413.8    Compiling tiny-keccak v2.0.2
+#24 414.0    Compiling pem-rfc7468 v0.7.0
+#24 414.1    Compiling base16ct v0.2.0
+#24 414.1    Compiling ff_derive v0.13.1
+#24 414.2    Compiling parking_lot_core v0.9.12
+#24 414.4    Compiling serde_derive v1.0.228
+#24 414.5    Compiling zeroize_derive v1.4.2
+#24 414.5    Compiling tracing-attributes v0.1.31
+#24 414.7    Compiling der_derive v0.7.3
+#24 414.7    Compiling thiserror-impl v2.0.17
+#24 415.3    Compiling allocator-api2 v0.2.21
+#24 415.4    Compiling futures-macro v0.3.31
+#24 415.9    Compiling zeroize v1.8.2
+#24 416.2    Compiling ppv-lite86 v0.2.21
+#24 416.5    Compiling scopeguard v1.2.0
+#24 416.5    Compiling futures-core v0.3.31
+#24 416.6    Compiling tracing v0.1.44
+#24 416.8    Compiling der v0.7.10
+#24 416.9    Compiling strsim v0.11.1
+#24 417.0    Compiling rayon-core v1.13.0
+#24 417.1    Compiling lock_api v0.4.14
+#24 417.5    Compiling keccak v0.1.5
+#24 417.8    Compiling futures-sink v0.3.31
+#24 418.0    Compiling serde_json v1.0.147
+#24 418.0    Compiling block-buffer v0.10.4
+#24 418.1    Compiling crypto-common v0.1.6
+#24 418.2    Compiling crypto-bigint v0.5.5
+#24 418.4    Compiling toml_parser v1.0.6+spec-1.1.0
+#24 418.4    Compiling toml_datetime v0.7.5+spec-1.1.0
+#24 418.6    Compiling futures-io v0.3.31
+#24 418.6    Compiling zmij v0.1.7
+#24 418.7    Compiling spki v0.7.3
+#24 419.0    Compiling bytes v1.11.0
+#24 419.0    Compiling digest v0.10.7
+#24 419.0    Compiling smallvec v1.15.1
+#24 419.1    Compiling bitvec v1.0.1
+#24 419.5    Compiling arrayvec v0.7.6
+#24 419.9    Compiling pkcs8 v0.10.2
+#24 419.9    Compiling sha2 v0.10.9 (https://github.com/sp1-patches/RustCrypto-hashes?tag=patch-sha2-0.10.9-sp1-4.0.0#0b1945ee)
+#24 420.0    Compiling hmac v0.12.1
+#24 420.1    Compiling serdect v0.2.0
+#24 420.2    Compiling signature v2.2.0
+#24 420.8    Compiling rfc6979 v0.4.0 (https://github.com/sp1-patches/signatures.git?tag=patch-16.9-sp1-4.1.0#1880299a)
+#24 420.8    Compiling http v1.4.0
+#24 421.3    Compiling sec1 v0.7.3
+#24 421.4    Compiling sha3 v0.10.8 (https://github.com/sp1-patches/RustCrypto-hashes?tag=patch-sha3-0.10.8-sp1-4.0.0#8f6d303c)
+#24 421.4    Compiling toml_edit v0.23.10+spec-1.0.0
+#24 421.5    Compiling synstructure v0.13.2
+#24 421.6    Compiling foldhash v0.1.5
+#24 421.9    Compiling parking_lot v0.12.5
+#24 422.1    Compiling dunce v1.0.5
+#24 422.4    Compiling ff v0.13.1
+#24 422.6    Compiling hashbrown v0.15.5
+#24 422.6    Compiling unicode-segmentation v1.12.0
+#24 423.0    Compiling proc-macro-crate v3.4.0
+#24 423.2    Compiling pin-utils v0.1.0
+#24 423.3    Compiling group v0.13.0
+#24 423.4    Compiling ruint-macro v1.2.1
+#24 423.5    Compiling slab v0.4.11
+#24 423.6    Compiling fnv v1.0.7
+#24 423.8    Compiling convert_case v0.10.0
+#24 424.1    Compiling futures-channel v0.3.31
+#24 424.2    Compiling elliptic-curve v0.13.8
+#24 424.4    Compiling num-bigint v0.4.6
+#24 424.6    Compiling futures-task v0.3.31
+#24 424.6    Compiling alloy-rlp-derive v0.3.12
+#24 424.7    Compiling zerofrom-derive v0.1.6
+#24 424.7    Compiling rand_chacha v0.3.1
+#24 424.9    Compiling tokio-macros v2.6.0
+#24 425.0    Compiling derive_more-impl v2.1.1
+#24 425.4    Compiling mio v1.1.1
+#24 425.5    Compiling futures-util v0.3.31
+#24 425.8    Compiling ecdsa v0.16.9 (https://github.com/sp1-patches/signatures.git?tag=patch-16.9-sp1-4.1.0#1880299a)
+#24 425.8    Compiling signal-hook-registry v1.4.7
+#24 426.2    Compiling alloy-rlp v0.3.12
+#24 426.6    Compiling socket2 v0.6.1
+#24 426.7    Compiling rand v0.8.5
+#24 426.8    Compiling const-hex v1.17.0
+#24 426.9    Compiling ahash v0.8.12
+#24 427.0    Compiling yoke-derive v0.8.1
+#24 427.3    Compiling k256 v0.13.4 (https://github.com/sp1-patches/elliptic-curves?tag=patch-k256-13.4-sp1-5.0.0#f7d8998e)
+#24 427.7    Compiling ruint v1.17.0
+#24 427.7    Compiling displaydoc v0.2.5
+#24 427.8    Compiling httparse v1.10.1
+#24 427.9    Compiling tokio v1.48.0
+#24 428.8    Compiling zerovec-derive v0.11.2
+#24 428.9    Compiling ring v0.17.14
+#24 429.0    Compiling percent-encoding v2.3.2
+#24 429.2    Compiling bitflags v2.10.0
+#24 429.3    Compiling anyhow v1.0.100
+#24 429.5    Compiling async-trait v0.1.89
+#24 430.4    Compiling icu_properties_data v2.1.2
+#24 430.5    Compiling icu_normalizer_data v2.1.1
+#24 430.5    Compiling derive_more v2.1.1
+#24 430.6    Compiling hex v0.4.3
+#24 431.1    Compiling crossbeam-epoch v0.9.18
+#24 431.3    Compiling regex-syntax v0.8.8
+#24 431.3    Compiling ident_case v1.0.1
+#24 431.7    Compiling alloy-primitives v1.3.0
+#24 431.9    Compiling spin v0.9.8
+#24 432.1    Compiling darling_core v0.21.3
+#24 432.3    Compiling auto_impl v1.3.0
+#24 432.8    Compiling lazy_static v1.5.0
+#24 433.1    Compiling tower-service v0.3.3
+#24 433.3    Compiling itertools v0.12.1
+#24 433.5    Compiling tokio-util v0.7.17
+#24 434.3    Compiling http-body v1.0.1
+#24 435.5    Compiling darling_macro v0.21.3
+#24 435.9    Compiling num-conv v0.1.0
+#24 436.1    Compiling thiserror v1.0.69
+#24 436.5    Compiling time-core v0.1.6
+#24 436.5    Compiling form_urlencoded v1.2.2
+#24 436.6    Compiling zerofrom v0.1.6
+#24 436.6    Compiling darling v0.21.3
+#24 436.9    Compiling serde_with_macros v3.16.1
+#24 437.1    Compiling stable_deref_trait v1.2.1
+#24 437.1    Compiling time-macros v0.2.24
+#24 437.2    Compiling rustix v1.1.3
+#24 437.7    Compiling yoke v0.8.1
+#24 438.3    Compiling thiserror-impl v1.0.69
+#24 438.3    Compiling untrusted v0.9.0
+#24 438.7    Compiling regex-automata v0.4.13
+#24 439.0    Compiling serde_with v3.16.1
+#24 439.7    Compiling zerovec v0.11.5
+#24 440.0    Compiling crossbeam-deque v0.8.6
+#24 440.6    Compiling alloy-eip2930 v0.2.1
+#24 440.6    Compiling num_enum_derive v0.7.5
+#24 440.8    Compiling alloy-sol-type-parser v1.5.2
+#24 440.8    Compiling try-lock v0.2.5
+#24 440.9    Compiling tower-layer v0.3.3
+#24 441.6    Compiling alloy-eip7702 v0.6.1
+#24 441.7    Compiling want v0.3.1
+#24 441.9    Compiling http-body-util v0.1.3
+#24 442.3    Compiling syn-solidity v1.5.2
+#24 442.4    Compiling macro-string v0.1.4
+#24 442.4    Compiling proc-macro-error-attr2 v2.0.0
+#24 442.5    Compiling crc-catalog v2.4.0
+#24 442.7    Compiling num_enum v0.7.5
+#24 442.7    Compiling alloy-json-abi v1.3.0
+#24 443.0    Compiling httpdate v1.0.3
+#24 443.0    Compiling crc v3.4.0
+#24 443.1    Compiling cmake v0.1.57
+#24 443.2    Compiling getrandom v0.3.4
+#24 443.4    Compiling rayon v1.11.0
+#24 443.6    Compiling fs_extra v1.3.0
+#24 443.6    Compiling base64 v0.22.1
+#24 443.7    Compiling proc-macro-error2 v2.0.1
+#24 444.1    Compiling alloy-eip2124 v0.2.0
+#24 444.3    Compiling tinystr v0.8.2
+#24 444.7    Compiling aws-lc-sys v0.35.0
+#24 444.9    Compiling alloy-sol-macro-input v1.3.0
+#24 444.9    Compiling rustls-pki-types v1.13.2
+#24 445.0    Compiling prettyplease v0.2.37
+#24 445.6    Compiling linux-raw-sys v0.11.0
+#24 445.7    Compiling glob v0.3.3
+#24 445.8    Compiling writeable v0.6.2
+#24 445.8    Compiling litemap v0.8.1
+#24 446.0    Compiling alloy-sol-macro-expander v1.3.0
+#24 446.9    Compiling icu_locale_core v2.1.1
+#24 447.0    Compiling potential_utf v0.1.4
+#24 447.3    Compiling zerotrie v0.2.3
+#24 447.6    Compiling fastrand v2.3.0
+#24 447.9    Compiling icu_collections v2.1.1
+#24 448.5    Compiling aws-lc-rs v1.15.2
+#24 448.7    Compiling tempfile v3.24.0
+#24 448.9    Compiling icu_provider v2.1.1
+#24 449.2    Compiling alloy-sol-macro v1.3.0
+#24 449.5    Compiling p3-util v0.2.3-succinct
+#24 449.7    Compiling sync_wrapper v1.0.2
+#24 450.3    Compiling secp256k1-sys v0.10.1
+#24 450.4    Compiling p3-field v0.2.3-succinct
+#24 450.4    Compiling icu_normalizer v2.1.1
+#24 450.5    Compiling icu_properties v2.1.2
+#24 450.7    Compiling alloy-sol-types v1.3.0
+#24 451.3    Compiling regex v1.12.2
+#24 451.7    Compiling alloy-serde v1.0.41
+#24 452.1    Compiling nybbles v0.4.6
+#24 452.5    Compiling ipnet v2.11.0
+#24 452.6    Compiling powerfmt v0.2.0
+#24 453.0    Compiling alloy-eips v1.0.41
+#24 453.6    Compiling deranged v0.5.5
+#24 453.7    Compiling alloy-trie v0.9.1
+#24 453.9    Compiling idna_adapter v1.2.1
+#24 454.0    Compiling p3-maybe-rayon v0.2.3-succinct
+#24 454.2    Compiling itertools v0.13.0
+#24 455.0    Compiling openssl-probe v0.1.6
+#24 455.1    Compiling rustls v0.23.35
+#24 455.3    Compiling utf8_iter v1.0.4
+#24 455.3    Compiling time v0.3.44
+#24 455.7    Compiling tower v0.5.2
+#24 455.8    Compiling alloy-tx-macros v1.2.1
+#24 456.4    Compiling idna v1.1.0
+#24 456.6    Compiling atomic-waker v1.1.2
+#24 457.5    Compiling h2 v0.4.12
+#24 457.8    Compiling url v2.5.7
+#24 457.8    Compiling p3-matrix v0.2.3-succinct
+#24 458.7    Compiling alloy-json-rpc v1.0.41
+#24 459.1    Compiling ryu v1.0.21
+#24 459.3    Compiling secp256k1 v0.30.0
+#24 459.4    Compiling futures-utils-wasm v0.1.0
+#24 459.6    Compiling const_format_proc_macros v0.2.34
+#24 459.8    Compiling p3-symmetric v0.2.3-succinct
+#24 460.6    Compiling itertools v0.14.0
+#24 460.7    Compiling alloy-consensus v1.0.41
+#24 460.8    Compiling toml_datetime v0.6.11
+#24 460.8    Compiling blake3 v1.8.2
+#24 461.5    Compiling rustls-native-certs v0.8.2
+#24 461.6    Compiling revm-primitives v20.2.1
+#24 462.0    Compiling hyper v1.8.1
+#24 462.0    Compiling primeorder v0.13.1 (https://github.com/sp1-patches/elliptic-curves?tag=patch-p256-13.2-sp1-5.0.0#10cca2ef)
+#24 462.2    Compiling constant_time_eq v0.3.1
+#24 462.4    Compiling arrayref v0.3.9
+#24 462.7    Compiling p3-dft v0.2.3-succinct
+#24 462.7    Compiling alloy-signer v1.0.41
+#24 462.9    Compiling revm-bytecode v5.0.0
+#24 463.1    Compiling p256 v0.13.2 (https://github.com/sp1-patches/elliptic-curves?tag=patch-p256-13.2-sp1-5.0.0#10cca2ef)
+#24 463.7    Compiling pkg-config v0.3.32
+#24 463.8    Compiling eyre v0.6.12
+#24 463.9    Compiling num-rational v0.4.2
+#24 464.1    Compiling alloy-network-primitives v1.0.41
+#24 464.3    Compiling alloy-consensus-any v1.0.41
+#24 464.5    Compiling revm-state v6.0.0
+#24 464.9    Compiling hyper-util v0.1.19
+#24 465.2    Compiling num-iter v0.1.45
+#24 465.3    Compiling num-complex v0.4.6
+#24 465.4    Compiling strum_macros v0.26.4
+#24 465.8    Compiling alloy-rpc-types-eth v1.0.41
+#24 465.9    Compiling p3-mds v0.2.3-succinct
+#24 466.4    Compiling p3-challenger v0.2.3-succinct
+#24 466.7    Compiling num v0.4.3
+#24 466.8    Compiling futures-executor v0.3.31
+#24 466.9    Compiling bytemuck_derive v1.10.2
+#24 467.0    Compiling clap_derive v4.5.49
+#24 467.1    Compiling gcd v2.3.0
+#24 467.3    Compiling data-encoding v2.9.0
+#24 467.6    Compiling p3-commit v0.2.3-succinct
+#24 467.9    Compiling futures v0.3.31
+#24 468.0    Compiling p3-poseidon2 v0.2.3-succinct
+#24 468.0    Compiling strum_macros v0.27.2
+#24 468.2    Compiling sp1-derive v5.2.4
+#24 468.9    Compiling semver v1.0.27
+#24 469.0    Compiling alloy-rpc-types-any v1.0.41
+#24 469.2    Compiling bytemuck v1.24.0
+#24 469.4    Compiling alloy-network v1.0.41
+#24 469.7    Compiling utf8parse v0.2.2
+#24 470.2    Compiling p3-air v0.2.3-succinct
+#24 470.3    Compiling parity-scale-codec-derive v3.7.5
+#24 470.4    Compiling anstyle-parse v0.2.7
+#24 470.4    Compiling impl-trait-for-tuples v0.2.3
+#24 470.6    Compiling is_terminal_polyfill v1.70.2
+#24 470.9    Compiling strum v0.27.2
+#24 470.9    Compiling anstyle-query v1.1.5
+#24 470.9    Compiling prost-derive v0.13.5
+#24 471.0    Compiling anstyle v1.0.13
+#24 471.4    Compiling colorchoice v1.0.4
+#24 471.6    Compiling p3-baby-bear v0.2.3-succinct
+#24 471.8    Compiling p3-interpolation v0.2.3-succinct
+#24 472.0    Compiling clang-sys v1.8.1
+#24 472.1    Compiling anstream v0.6.21
+#24 472.2    Compiling webpki-roots v1.0.4
+#24 472.4    Compiling ripemd v0.1.3
+#24 472.5    Compiling bincode v1.3.3
+#24 472.7    Compiling mime v0.3.17
+#24 472.7    Compiling clap_lex v0.7.6
+#24 472.8    Compiling p3-fri v0.2.3-succinct
+#24 472.9    Compiling hashbrown v0.14.5
+#24 473.4    Compiling p3-uni-stark v0.2.3-succinct
+#24 473.4    Compiling p3-merkle-tree v0.2.3-succinct
+#24 473.4    Compiling strum v0.26.3
+#24 473.8    Compiling sp1-primitives v5.2.4
+#24 473.9    Compiling clap_builder v4.5.53
+#24 473.9    Compiling rayon-scan v0.1.1
+#24 474.1    Compiling sysinfo v0.30.13
+#24 474.4    Compiling serde_spanned v0.6.9
+#24 474.5    Compiling static_assertions v1.1.0
+#24 474.6    Compiling toml_write v0.1.2
+#24 474.6    Compiling vcpkg v0.2.15
+#24 474.8    Compiling revm-database-interface v6.0.0
+#24 474.8    Compiling derive_more-impl v1.0.0
+#24 474.8    Compiling enum-ordinalize-derive v4.3.2
+#24 475.2    Compiling cbindgen v0.27.0
+#24 475.3    Compiling alloy-chains v0.2.23
+#24 475.3    Compiling op-alloy-consensus v0.18.14
+#24 475.7    Compiling sp1-stark v5.2.4
+#24 476.1    Compiling toml_edit v0.22.27
+#24 476.3    Compiling http v0.2.12
+#24 476.3    Compiling ark-std v0.5.0
+#24 476.4    Compiling clap v4.5.53
+#24 476.5    Compiling enum-ordinalize v4.3.2
+#24 476.7    Compiling ark-serialize-derive v0.5.0
+#24 476.7    Compiling minimal-lexical v0.2.1
+#24 476.8    Compiling heck v0.4.1
+#24 476.9    Compiling educe v0.6.0
+#24 477.9    Compiling nom v7.1.3
+#24 477.9    Compiling ark-ff-macros v0.5.0
+#24 478.0    Compiling scale-info-derive v2.11.6
+#24 478.0    Compiling ark-ff-asm v0.5.0
+#24 478.1    Compiling ark-serialize v0.5.0
+#24 478.9    Compiling toml v0.8.23
+#24 479.2    Compiling libloading v0.8.9
+#24 479.6    Compiling pathdiff v0.2.3
+#24 479.7    Compiling http-body v0.4.6
+#24 479.7    Compiling rustc_version v0.4.1
+#24 479.8    Compiling pairing v0.23.0
+#24 480.1    Compiling cexpr v0.6.0
+#24 480.2    Compiling ark-ff v0.5.0
+#24 480.3    Compiling tokio-stream v0.1.17
+#24 480.3    Compiling pin-project-internal v1.1.10
+#24 480.4    Compiling num-modular v0.6.1
+#24 480.5    Compiling sp1_bls12_381 v0.8.0-sp1-5.0.0
+#24 481.0    Compiling uuid v1.19.0
+#24 481.8    Compiling num-order v1.2.0
+#24 481.9    Compiling dashu-base v0.4.1
+#24 482.2    Compiling alloy-genesis v1.0.41
+#24 482.3    Compiling kzg-rs v0.2.7
+#24 482.4    Compiling pin-project v1.1.10
+#24 483.0    Compiling dashu-int v0.4.1
+#24 483.4    Compiling rustc-hex v2.1.0
+#24 483.5    Compiling winnow v0.5.40
+#24 483.7    Compiling dyn-clone v1.0.20
+#24 484.4    Compiling reth-primitives-traits v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 484.7    Compiling sp1-core-machine v5.2.4
+#24 484.8    Compiling ark-poly v0.5.0
+#24 485.0    Compiling openssl-sys v0.9.111
+#24 485.2    Compiling revm-context-interface v7.0.1
+#24 485.5    Compiling dashu-float v0.4.3
+#24 485.8    Compiling toml_edit v0.19.15
+#24 485.8    Compiling const_format v0.2.35
+#24 485.9    Compiling rand_core v0.9.3
+#24 486.4    Compiling serde_arrays v0.2.0
+#24 486.6    Compiling socket2 v0.5.10
+#24 486.9    Compiling ark-ec v0.5.0
+#24 487.5    Compiling dashu-ratio v0.4.1
+#24 487.7    Compiling rand_chacha v0.9.0
+#24 487.9    Compiling proc-macro-crate v1.3.1
+#24 487.9    Compiling substrate-bn v0.6.0 (https://github.com/sp1-patches/bn?tag=patch-0.6.0-sp1-5.0.0#e0d67f21)
+#24 488.1    Compiling aurora-engine-modexp v1.2.0
+#24 488.1    Compiling serde_urlencoded v0.7.1
+#24 489.2    Compiling derive-where v1.6.0
+#24 489.2    Compiling num_enum_derive v0.5.11
+#24 489.2    Compiling dashu-macros v0.4.1
+#24 489.4    Compiling rand v0.9.2
+#24 489.6    Compiling ark-bls12-381 v0.5.0
+#24 489.8    Compiling ark-bn254 v0.5.0
+#24 489.9    Compiling revm-interpreter v22.0.1
+#24 490.5    Compiling alloy-hardforks v0.2.13
+#24 490.8    Compiling revm-database v6.0.0
+#24 491.1    Compiling revm-precompile v23.0.0
+#24 491.3    Compiling range-set-blaze v0.1.16
+#24 491.5    Compiling revm-context v7.0.1
+#24 491.7    Compiling indenter v0.3.4
+#24 492.2    Compiling crossbeam-channel v0.5.15
+#24 492.8    Compiling tinyvec_macros v0.1.1
+#24 493.0    Compiling foreign-types-shared v0.1.1
+#24 493.1    Compiling openssl v0.10.75
+#24 493.2    Compiling revm-handler v7.0.1
+#24 493.2    Compiling tinyvec v1.10.0
+#24 493.5    Compiling foreign-types v0.3.2
+#24 493.8    Compiling enum-map-derive v0.17.0
+#24 494.1    Compiling openssl-macros v0.1.1
+#24 494.3    Compiling encoding_rs v0.8.35
+#24 494.7    Compiling revm-inspector v7.0.1
+#24 494.9    Compiling beef v0.5.2
+#24 495.2    Compiling object v0.37.3
+#24 495.2    Compiling native-tls v0.2.14
+#24 495.6    Compiling revm v26.0.1
+#24 496.7    Compiling op-revm v7.0.1
+#24 497.9    Compiling sp1-recursion-core v5.2.4
+#24 498.1    Compiling prost v0.13.5
+#24 499.0    Compiling ark-ff-macros v0.4.2
+#24 499.6    Compiling subenum v1.1.3
+#24 499.9    Compiling enum-as-inner v0.6.1
+#24 500.1    Compiling ark-ff-asm v0.4.2
+#24 500.4    Compiling derivative v2.2.0
+#24 500.5    Compiling parity-scale-codec v3.7.5
+#24 500.7    Compiling tagptr v0.2.0
+#24 501.0    Compiling tokio-native-tls v0.3.1
+#24 501.1    Compiling hickory-proto v0.25.2
+#24 501.5    Compiling moka v0.12.12
+#24 501.6    Compiling alloy-evm v0.12.3
+#24 501.6    Compiling h2 v0.3.27
+#24 502.2    Compiling byte-slice-cast v1.2.3
+#24 502.8    Compiling resolv-conf v0.7.6
+#24 502.9    Compiling iri-string v0.7.9
+#24 503.3    Compiling prost-types v0.13.5
+#24 503.6    Compiling hyper-tls v0.6.0
+#24 503.9    Compiling outref v0.5.2
+#24 504.5    Compiling hickory-resolver v0.25.2
+#24 505.2    Compiling tower-http v0.6.8
+#24 505.9    Compiling hyper v0.14.32
+#24 505.9    Compiling bindgen v0.70.1
+#24 506.2    Compiling vsimd v0.8.0
+#24 507.6    Compiling base64-simd v0.8.0
+#24 508.0    Compiling bytes-utils v0.1.4
+#24 508.2    Compiling miette-derive v7.6.0
+#24 508.7    Compiling rustc-hash v1.1.0
+#24 509.1    Compiling unicode-width v0.1.14
+#24 509.3    Compiling multimap v0.10.1
+#24 509.7    Compiling aws-smithy-types v1.3.5
+#24 510.3    Compiling miette v7.6.0
+#24 510.8    Compiling reth-trie-common v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 512.0    Compiling sha1 v0.10.6
+#24 512.1    Compiling async-stream-impl v0.3.6
+#24 513.6    Compiling async-stream v0.3.6
+#24 513.8    Compiling rustls-webpki v0.103.8
+#24 514.7    Compiling derive_more v1.0.0
+#24 514.9    Compiling reth-static-file-types v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 515.2    Compiling scale-info v2.11.6
+#24 516.9    Compiling dashmap v6.1.0
+#24 516.9    Compiling reth-prune-types v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 517.0    Compiling aws-smithy-async v1.2.7
+#24 517.5    Compiling ff v0.12.1
+#24 518.2    Compiling sp1-recursion-derive v5.2.4
+#24 518.8    Compiling rustls v0.21.12
+#24 519.1    Compiling tokio-rustls v0.26.4
+#24 519.2    Compiling memuse v0.2.2
+#24 520.0    Compiling hyper-rustls v0.27.7
+#24 520.1    Compiling matchers v0.2.0
+#24 520.2    Compiling group v0.12.1
+#24 520.5    Compiling aws-smithy-runtime-api v1.9.3
+#24 520.8    Compiling reth-storage-errors v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 521.1    Compiling reqwest v0.12.28
+#24 521.3    Compiling reth-ethereum-forks v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 521.3    Compiling sct v0.7.1
+#24 521.5    Compiling rustls-webpki v0.101.7
+#24 521.7    Compiling sharded-slab v0.1.7
+#24 522.8    Compiling tracing-log v0.2.0
+#24 522.9    Compiling thread_local v1.1.9
+#24 523.9    Compiling nu-ansi-term v0.50.3
+#24 524.5    Compiling fixedbitset v0.5.7
+#24 525.2    Compiling tracing-subscriber v0.3.22
+#24 525.6    Compiling petgraph v0.7.1
+#24 525.6    Compiling downloader v0.2.8
+#24 526.2    Compiling reth-ethereum-primitives v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 527.3    Compiling serde_bytes v0.11.19
+#24 527.4    Compiling adler2 v2.0.1
+#24 527.9    Compiling simd-adler32 v0.3.8
+#24 528.6    Compiling tokio-rustls v0.24.1
+#24 528.8    Compiling miniz_oxide v0.8.9
+#24 529.7    Compiling prost-build v0.13.5
+#24 530.6    Compiling blake2b_simd v1.0.3
+#24 531.4    Compiling flex-error v0.4.4
+#24 532.1    Compiling alloy-transport v1.0.41
+#24 532.4    Compiling reth-network-peers v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 532.8    Compiling digest v0.9.0
+#24 533.1    Compiling subtle-encoding v0.5.1
+#24 533.7    Compiling camino v1.2.2
+#24 533.7    Compiling utf-8 v0.7.6
+#24 534.7    Compiling data-encoding-macro-internal v0.1.16
+#24 534.8    Compiling tendermint-proto v0.40.4
+#24 535.1    Compiling reth-chainspec v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 536.5    Compiling hyper-rustls v0.24.2
+#24 536.6    Compiling reth-execution-types v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 538.3    Compiling webpki-roots v0.26.11
+#24 539.2    Compiling prost-derive v0.12.6
+#24 539.2    Compiling block-buffer v0.9.0
+#24 539.3    Compiling serial_test_derive v3.2.0
+#24 539.4    Compiling match-lookup v0.1.1
+#24 539.5    Compiling core2 v0.4.0
+#24 540.0    Compiling indexmap v1.9.3
+#24 540.0    Compiling base64 v0.21.7
+#24 540.6    Compiling unsigned-varint v0.8.0
+#24 540.7    Compiling const-str v0.4.3
+#24 540.8    Compiling subtle-ng v2.5.0
+#24 540.8    Compiling opaque-debug v0.3.1
+#24 541.0    Compiling bimap v0.6.3
+#24 541.1    Compiling matchit v0.7.3
+#24 541.6    Compiling multihash v0.19.3
+#24 541.8    Compiling base256emoji v1.0.2
+#24 541.9    Compiling alloy-pubsub v1.0.41
+#24 542.0    Compiling curve25519-dalek-ng v4.1.1
+#24 542.2    Compiling sha2 v0.9.9
+#24 543.1    Compiling dashu v0.4.2
+#24 543.3    Compiling data-encoding-macro v0.1.18
+#24 543.4    Compiling pasta_curves v0.4.1
+#24 544.5    Compiling reth-execution-errors v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 544.6    Compiling pairing v0.22.0
+#24 544.8    Compiling snowbridge-amcl v1.0.2
+#24 545.0    Compiling reth-stages-types v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 545.1    Compiling logos-codegen v0.14.4
+#24 545.9    Compiling num_enum v0.5.11
+#24 546.7    Compiling ark-std v0.4.0
+#24 547.4    Compiling ed25519 v2.2.3
+#24 547.8    Compiling generic-array v1.1.0
+#24 548.4    Compiling num_cpus v1.17.0
+#24 548.8    Compiling rustc-hash v2.1.1
+#24 548.9    Compiling hashbrown v0.12.3
+#24 549.1    Compiling downcast-rs v1.2.1
+#24 549.3    Compiling base-x v0.2.11
+#24 549.5    Compiling gen_ops v0.4.0
+#24 549.6    Compiling rrs-succinct v0.1.0
+#24 549.9    Compiling sp1-curves v5.2.4
+#24 549.9    Compiling ark-serialize v0.4.2
+#24 550.0    Compiling logos-derive v0.14.4
+#24 550.7    Compiling multibase v0.9.2
+#24 551.0    Compiling halo2_proofs v0.1.0
+#24 551.0    Compiling bls12_381 v0.7.1
+#24 551.3    Compiling ed25519-consensus v2.1.0
+#24 552.4    Compiling aws-credential-types v1.2.11
+#24 552.6    Compiling aws-smithy-http v0.62.6
+#24 552.8    Compiling enum-map v2.7.3
+#24 553.4    Compiling logos-codegen v0.15.1
+#24 553.4    Compiling aws-types v1.3.11
+#24 554.2    Compiling itertools v0.10.5
+#24 554.3    Compiling vec_map v0.8.2
+#24 554.3    Compiling serde_repr v0.1.20
+#24 554.3    Compiling proc-macro2-diagnostics v0.10.1
+#24 554.8    Compiling nohash-hasher v0.2.0
+#24 555.1    Compiling elf v0.7.4
+#24 555.3    Compiling ansi_term v0.12.1
+#24 555.5    Compiling gimli v0.32.3
+#24 555.7    Compiling tendermint v0.40.4
+#24 555.9    Compiling ark-ff v0.4.2
+#24 556.7    Compiling sp1-core-executor v5.2.4
+#24 556.8    Compiling tracing-forest v0.1.6
+#24 557.3    Compiling halo2 v0.1.0-beta.2
+#24 558.4    Compiling addr2line v0.25.1
+#24 558.5    Compiling jubjub v0.9.0
+#24 559.3    Compiling tower v0.4.13
+#24 560.4    Compiling logos v0.14.4
+#24 561.0    Compiling pasta_curves v0.5.1
+#24 561.1    Compiling p3-keccak-air v0.2.3-succinct
+#24 561.2    Compiling aws-smithy-observability v0.1.5
+#24 562.1    Compiling alloy-op-hardforks v0.2.13
+#24 562.3    Compiling lru v0.13.0
+#24 562.5    Compiling blake2 v0.10.6
+#24 563.0    Compiling serde_path_to_error v0.1.20
+#24 563.0    Compiling rustc-demangle v0.1.26
+#24 563.8    Compiling web-time v1.1.0
+#24 564.0    Compiling urlencoding v2.1.3
+#24 564.3    Compiling yansi v1.0.1
+#24 565.3    Compiling size v0.4.1
+#24 565.8    Compiling backtrace v0.3.76
+#24 567.0    Compiling zkhash v0.2.0
+#24 568.6    Compiling aws-sigv4 v1.3.7
+#24 569.8    Compiling cid v0.11.1
+#24 570.7    Compiling reth-consensus v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 571.2    Compiling p3-bn254-fr v0.2.3-succinct
+#24 571.7    Compiling reth-db-models v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 572.6    Compiling alloy-rpc-types-engine v1.0.41
+#24 572.7    Compiling hyper-timeout v0.5.2
+#24 573.6    Compiling rust_decimal v1.39.0
+#24 574.0    Compiling reth-storage-api v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 575.0    Compiling logos-derive v0.15.1
+#24 575.1    Compiling reth-optimism-forks v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 575.5    Compiling prost-reflect v0.14.7
+#24 575.6    Compiling protox-parse v0.7.0
+#24 576.1    Compiling prost v0.12.6
+#24 576.3    Compiling sp1-recursion-gnark-ffi v5.2.4
+#24 576.5    Compiling aws-smithy-json v0.61.9
+#24 576.9    Compiling reth-optimism-primitives v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 577.4    Compiling op-alloy-rpc-types v0.18.14
+#24 577.9    Compiling hkdf v0.12.4
+#24 578.0    Compiling axum-core v0.3.4
+#24 578.5    Compiling iana-time-zone v0.1.64
+#24 578.6    Compiling fixedbitset v0.4.2
+#24 578.9    Compiling sync_wrapper v0.1.2
+#24 578.9    Compiling regex-lite v0.1.8
+#24 579.1    Compiling protox v0.7.2
+#24 579.5    Compiling chrono v0.4.42
+#24 579.5    Compiling sp1-recursion-compiler v5.2.4
+#24 579.7    Compiling petgraph v0.6.5
+#24 579.8    Compiling prost-types v0.12.6
+#24 580.6    Compiling logos v0.15.1
+#24 581.3    Compiling reth-consensus-common v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 581.5    Compiling reth-trie-sparse v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 581.8    Compiling axum-core v0.4.5
+#24 581.8    Compiling alloy-rpc-types v1.0.32
+#24 582.0    Compiling nmt-rs v0.2.5
+#24 582.1    Compiling enum_dispatch v0.3.13
+#24 582.3    Compiling axum v0.6.20
+#24 582.6    Compiling bech32 v0.11.1
+#24 583.4    Compiling option-ext v0.2.0
+#24 584.1    Compiling cfg_aliases v0.2.1
+#24 584.3    Compiling sdd v3.0.10
+#24 584.7    Compiling nix v0.30.1
+#24 584.8    Compiling axum v0.7.9
+#24 585.3    Compiling dirs-sys v0.4.1
+#24 585.6    Compiling scc v2.4.0
+#24 585.9    Compiling reth-trie v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 586.2    Compiling prost-build v0.12.6
+#24 586.3    Compiling celestia-proto v0.9.1
+#24 586.7    Compiling reth-optimism-chainspec v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 587.4    Compiling reth-evm v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 587.8    Compiling rusticata-macros v4.1.0
+#24 588.3    Compiling sp1-prover v5.2.2
+#24 588.6    Compiling rustls-pemfile v2.2.0
+#24 589.3    Compiling tokio-io-timeout v1.2.1
+#24 589.4    Compiling asn1-rs-derive v0.5.1
+#24 589.7    Compiling asn1-rs-impl v0.2.0
+#24 589.8    Compiling cookie v0.18.1
+#24 590.3    Compiling bs58 v0.5.1
+#24 590.6    Compiling bitflags v1.3.2
+#24 590.6    Compiling bindgen v0.72.1
+#24 591.0    Compiling xmlparser v0.13.6
+#24 591.2    Compiling ref-cast v1.0.25
+#24 591.2    Compiling same-file v1.0.6
+#24 591.9    Compiling base64 v0.13.1
+#24 592.2    Compiling leopard-codec v0.1.0
+#24 592.4    Compiling libp2p-identity v0.2.13
+#24 592.8    Compiling aws-smithy-xml v0.60.13
+#24 593.3    Compiling serde-human-bytes v0.1.2
+#24 594.1    Compiling asn1-rs v0.6.2
+#24 594.7    Compiling walkdir v2.5.0
+#24 596.5    Compiling hyper-timeout v0.4.1
+#24 596.5    Compiling serial_test v3.2.0
+#24 596.7    Compiling tonic-build v0.10.2
+#24 597.4    Compiling dirs v5.0.1
+#24 597.9    Compiling reth-optimism-consensus v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 599.3    Compiling prost-reflect v0.15.3
+#24 599.3    Compiling protox-parse v0.8.0
+#24 599.5    Compiling pear_codegen v0.2.9
+#24 600.4    Compiling aws-smithy-query v0.60.9
+#24 600.9    Compiling alloy-op-evm v0.12.3
+#24 601.7    Compiling tracing-appender v0.2.4
+#24 602.3    Compiling rlp v0.5.2
+#24 602.9    Compiling curve25519-dalek v4.1.3 (https://github.com/sp1-patches/curve25519-dalek?tag=patch-4.1.3-sp1-5.0.0#be8c2201)
+#24 603.0    Compiling libz-sys v1.1.23
+#24 603.0    Compiling bzip2-sys v0.1.13+1.0.8
+#24 603.2    Compiling zstd-sys v2.0.16+zstd.1.5.7
+#24 604.6    Compiling lru v0.12.5
+#24 604.8    Compiling lz4-sys v1.11.1+lz4-1.10.0
+#24 605.3    Compiling bindgen v0.71.1
+#24 606.0    Compiling oid-registry v0.7.1
+#24 607.5    Compiling rsp-mpt v0.1.0 (https://github.com/succinctlabs/rsp.git?tag=reth-1.5.0#09bbb8f8)
+#24 608.3    Compiling protox v0.8.0
+#24 608.3    Compiling tonic v0.10.2
+#24 609.2    Compiling reth-optimism-evm v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 610.5    Compiling sp1-recursion-circuit v5.2.4
+#24 611.0    Compiling ev-types v0.0.1
+#24 613.3    Compiling multiaddr v0.18.2
+#24 617.5    Compiling reth-evm-ethereum v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 617.7    Compiling rsp-primitives v0.1.0 (https://github.com/succinctlabs/rsp.git?tag=reth-1.5.0#09bbb8f8)
+#24 619.0    Compiling reth-ethereum-consensus v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 619.0    Compiling reth-errors v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 619.2    Compiling blockstore v0.7.1
+#24 619.7    Compiling tonic-build v0.13.1
+#24 620.4    Compiling alloy-signer-local v1.0.41
+#24 620.4    Compiling jsonrpsee-types v0.25.1
+#24 621.4    Compiling cargo-platform v0.1.9
+#24 621.5    Compiling ref-cast-impl v1.0.25
+#24 621.7    Compiling curve25519-dalek-derive v0.1.1 (https://github.com/sp1-patches/curve25519-dalek?tag=patch-4.1.3-sp1-5.0.0#be8c2201)
+#24 622.1    Compiling fs-err v3.2.1
+#24 622.8    Compiling futures-timer v3.0.3
+#24 622.8    Compiling sp1-cuda v5.2.2
+#24 623.2    Compiling unicode-width v0.2.2
+#24 624.0    Compiling jsonrpsee-core v0.25.1
+#24 624.1    Compiling cargo_metadata v0.18.1
+#24 624.6    Compiling console v0.15.11
+#24 625.2    Compiling celestia-proto v0.10.0
+#24 626.2    Compiling librocksdb-sys v0.17.3+10.4.2
+#24 626.3    Compiling celestia-types v0.15.0
+#24 626.4    Compiling ctrlc v3.5.1
+#24 627.9    Compiling der-parser v9.0.0
+#24 628.0    Compiling bon-macros v3.8.1
+#24 630.1    Compiling is-terminal v0.4.17
+#24 631.4    Compiling uncased v0.9.10
+#24 632.1    Compiling instant v0.1.13
+#24 632.2    Compiling sp1-sdk v5.2.2
+#24 632.2    Compiling number_prefix v0.4.0
+#24 632.3    Compiling crc32fast v1.5.0
+#24 632.7    Compiling half v1.8.3
+#24 632.9    Compiling leopard-codec v0.2.0
+#24 632.9    Compiling bon v3.8.1
+#24 633.4    Compiling indicatif v0.17.11
+#24 633.5    Compiling backoff v0.4.0
+#24 633.6    Compiling sp1-build v5.2.2
+#24 634.0    Compiling serde_cbor v0.11.2
+#24 634.5    Compiling tdx-attest-sys v0.5.5 (https://github.com/jonas089/dstack#359cbf8e)
+#24 634.9    Compiling x509-parser v0.16.0
+#24 636.9    Compiling ed25519-dalek v2.2.0
+#24 638.6    Compiling devise_core v0.4.2
+#24 638.6    Compiling eventsource-stream v0.2.3
+#24 638.7    Compiling reth-primitives v1.5.0 (https://github.com/paradigmxyz/reth?tag=v1.5.0#61e38f9a)
+#24 638.7    Compiling soketto v0.8.1
+#24 638.9    Compiling alloy-dyn-abi v1.3.0
+#24 639.0    Compiling pem v3.0.6
+#24 639.3    Compiling inlinable_string v0.1.15
+#24 641.0    Compiling devise_codegen v0.4.2
+#24 641.3    Compiling pear v0.2.9
+#24 644.2    Compiling blockstore v0.8.0
+#24 644.4    Compiling informalsystems-pbjson v0.7.0
+#24 644.4    Compiling twox-hash v1.6.3
+#24 644.9    Compiling x509-cert v0.2.5
+#24 645.3    Compiling stable-pattern v0.1.0
+#24 645.5    Compiling multer v3.1.0
+#24 645.7    Compiling figment v0.10.19
+#24 645.8    Compiling state v0.6.0
+#24 646.0    Compiling object v0.36.7
+#24 646.2    Compiling asn1_der v0.7.6
+#24 646.5    Compiling ruzstd v0.7.3
+#24 646.5    Compiling ics23 v0.12.0
+#24 646.5    Compiling flate2 v1.1.5
+#24 646.8    Compiling rocket_http v0.6.0-dev (https://github.com/rwf2/Rocket?branch=master#3a54d079)
+#24 648.7    Compiling devise v0.4.2
+#24 649.0    Compiling alloy-core v1.3.0
+#24 649.0    Compiling cc-eventlog v0.5.5 (https://github.com/jonas089/dstack#359cbf8e)
+#24 649.3    Compiling rustls-pemfile v1.0.4
+#24 649.5    Compiling yasna v0.5.2
+#24 649.7    Compiling jsonrpsee-proc-macros v0.25.1
+#24 650.3    Compiling celestia-grpc-macros v0.4.0
+#24 650.4    Compiling rocket v0.6.0-dev (https://github.com/rwf2/Rocket?branch=master#3a54d079)
+#24 651.2    Compiling peg-runtime v0.8.5
+#24 651.6    Compiling rcgen v0.13.2
+#24 651.6    Compiling tdx-attest v0.5.5 (https://github.com/jonas089/dstack#359cbf8e)
+#24 652.1    Compiling rustls-native-certs v0.6.3
+#24 652.1    Compiling rocket_codegen v0.6.0-dev (https://github.com/rwf2/Rocket?branch=master#3a54d079)
+#24 652.4    Compiling peg-macros v0.8.5
+#24 654.1    Compiling ev-prover v0.2.0 (https://github.com/celestiaorg/celestia-zkevm/#ef1ca4a0)
+#24 654.6    Compiling size-parser v0.5.5 (https://github.com/jonas089/dstack#359cbf8e)
+#24 656.3    Compiling axum-core v0.5.5
+#24 656.4    Compiling ubyte v0.10.4
+#24 656.4    Compiling derive_more v0.99.20
+#24 657.4    Compiling or-panic v1.0.2
+#24 658.5    Compiling matchit v0.8.4
+#24 659.2    Compiling dotenvy v0.15.7
+#24 659.3    Compiling binascii v0.1.4
+#24 660.2    Compiling hex-literal v1.1.0
+#24 660.4    Compiling unsafe-libyaml v0.2.11
+#24 660.6    Compiling ref-swap v0.1.2
+#24 660.8    Compiling dstack-mr v0.5.5 (https://github.com/jonas089/dstack#359cbf8e)
+#24 661.0    Compiling peg v0.8.5
+#24 661.1    Compiling axum v0.8.8
+#24 661.4    Compiling tendermint-light-client-verifier v0.40.4
+#24 661.6    Compiling dstack-types v0.5.5 (https://github.com/jonas089/dstack#359cbf8e)
+#24 662.0    Compiling serde_yaml v0.9.34+deprecated
+#24 663.7    Compiling reqwest v0.11.27
+#24 663.9    Compiling light-client v0.1.0 (/build/light-client)
+#24 664.3    Compiling tendermint-config v0.40.4
+#24 664.7    Compiling tonic-reflection v0.10.2
+#24 665.8    Compiling http-client-unix-domain-socket v0.1.2
+#24 667.4    Compiling tendermint-rpc v0.40.4
+#24 667.9    Compiling dstack-sdk-types v0.1.2 (https://github.com/jonas089/dstack#359cbf8e)
+#24 732.4    Compiling tungstenite v0.26.2
+#24 738.9    Compiling tokio-tungstenite v0.26.2
+#24 740.2    Compiling alloy-transport-ws v1.0.41
+#24 740.2    Compiling alloy-transport-http v1.0.41
+#24 741.7    Compiling alloy-rpc-client v1.0.41
+#24 747.0    Compiling aws-smithy-http-client v1.1.5
+#24 747.1    Compiling alloy-provider v1.0.32
+#24 756.1    Compiling aws-smithy-runtime v1.9.5
+#24 757.4    Compiling op-alloy-network v0.18.14
+#24 757.6    Compiling rustls-platform-verifier v0.5.3
+#24 759.0    Compiling rsp-client-executor v0.1.0 (https://github.com/succinctlabs/rsp.git?tag=reth-1.5.0#09bbb8f8)
+#24 759.9    Compiling aws-runtime v1.5.17
+#24 760.3    Compiling twirp-rs v0.13.0-succinct
+#24 763.7    Compiling aws-sdk-ssooidc v1.93.0
+#24 764.0    Compiling aws-sdk-sts v1.95.0
+#24 765.7    Compiling aws-sdk-sso v1.91.0
+#24 766.9    Compiling aws-sdk-kms v1.97.0
+#24 769.2 warning: light-client@0.1.0: rustc +succinct --version: "rustc 1.88.0-dev\n"
+#24 769.2 warning: light-client@0.1.0: circuit built at 2026-01-05 17:39:09
+#24 769.2    Compiling aws-config v1.8.12
+#24 775.5    Compiling tonic v0.13.1
+#24 780.3    Compiling tonic v0.12.3
+#24 781.2    Compiling alloy-signer-aws v1.0.41
+#24 790.2    Compiling reqwest-middleware v0.3.3
+#24 792.8    Compiling jsonrpsee-client-transport v0.25.1
+#24 795.4    Compiling jsonrpsee-ws-client v0.25.1
+#24 796.2    Compiling lumina-utils v0.4.0
+#24 796.7    Compiling ev-zkevm-types v0.2.0 (https://github.com/celestiaorg/celestia-zkevm/#ef1ca4a0)
+#24 796.8    Compiling jsonrpsee-http-client v0.25.1
+#24 796.8    Compiling dcap-qvl v0.3.4 (https://github.com/jonas089/dcap-qvl?branch=v0.3.4-zk#039ff387)
+#24 798.7    Compiling celestia-types v0.16.0
+#24 801.3    Compiling alloy-contract v1.0.32
+#24 805.7    Compiling alloy v1.0.32
+#24 805.9    Compiling jsonrpsee v0.25.1
+#24 806.0    Compiling rsp-rpc-db v0.1.0 (https://github.com/succinctlabs/rsp.git?tag=reth-1.5.0#09bbb8f8)
+#24 806.3    Compiling celestia-rpc v0.13.0
+#24 807.9    Compiling ra-tls v0.5.5 (https://github.com/jonas089/dstack#359cbf8e)
+#24 810.2    Compiling celestia-grpc v0.8.0
+#24 815.8    Compiling types v0.1.0 (/build/types)
+#24 816.1 warning: unexpected `cfg` condition value: `borsh`
+#24 816.1    --> types/src/lib.rs:176:12
+#24 816.1     |
+#24 816.1 176 | #[cfg_attr(feature = "borsh", derive(BorshSerialize, BorshDeserialize))]
+#24 816.1     |            ^^^^^^^^^^^^^^^^^ help: remove the condition
+#24 816.1     |
+#24 816.1     = note: no expected values for `feature`
+#24 816.1     = help: consider adding `borsh` as a feature in `Cargo.toml`
+#24 816.1     = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+#24 816.1     = note: `#[warn(unexpected_cfgs)]` on by default
+#24 816.1 
+#24 816.1 warning: unexpected `cfg` condition value: `borsh_schema`
+#24 816.1    --> types/src/lib.rs:177:12
+#24 816.1     |
+#24 816.1 177 | #[cfg_attr(feature = "borsh_schema", derive(BorshSchema))]
+#24 816.1     |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the condition
+#24 816.1     |
+#24 816.1     = note: no expected values for `feature`
+#24 816.1     = help: consider adding `borsh_schema` as a feature in `Cargo.toml`
+#24 816.1     = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+#24 816.1 
+#24 816.1 warning: unexpected `cfg` condition value: `borsh`
+#24 816.1    --> types/src/lib.rs:185:12
+#24 816.1     |
+#24 816.1 185 | #[cfg_attr(feature = "borsh", derive(BorshSerialize, BorshDeserialize))]
+#24 816.1     |            ^^^^^^^^^^^^^^^^^ help: remove the condition
+#24 816.1     |
+#24 816.1     = note: no expected values for `feature`
+#24 816.1     = help: consider adding `borsh` as a feature in `Cargo.toml`
+#24 816.1     = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+#24 816.1 
+#24 816.1 warning: unexpected `cfg` condition value: `borsh_schema`
+#24 816.1    --> types/src/lib.rs:186:12
+#24 816.1     |
+#24 816.1 186 | #[cfg_attr(feature = "borsh_schema", derive(BorshSchema))]
+#24 816.1     |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the condition
+#24 816.1     |
+#24 816.1     = note: no expected values for `feature`
+#24 816.1     = help: consider adding `borsh_schema` as a feature in `Cargo.toml`
+#24 816.1     = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+#24 816.1 
+#24 816.3    Compiling ev-zkevm-types v0.2.0 (https://github.com/celestiaorg/celestia-zkevm/?branch=jonas%2Fcelestia-root-verification#a540d4e5)
+#24 818.1 warning: `types` (lib) generated 4 warnings
+#24 818.1    Compiling rsp-host-executor v0.1.0 (https://github.com/succinctlabs/rsp.git?tag=reth-1.5.0#09bbb8f8)
+#24 821.4    Compiling dstack-sdk v0.1.2 (https://github.com/jonas089/dstack#359cbf8e)
+#24 823.7    Compiling dstack-verifier v0.5.5 (https://github.com/jonas089/dstack#359cbf8e)
+#24 826.6    Compiling celestia-grpc-client v0.2.0 (https://github.com/celestiaorg/celestia-zkevm/#ef1ca4a0)
+#24 1027.2    Compiling rocksdb v0.24.0
+#24 1028.7    Compiling storage v0.2.0 (https://github.com/celestiaorg/celestia-zkevm/#ef1ca4a0)
+#24 1031.6    Compiling ev-state-queries v0.2.0 (https://github.com/celestiaorg/celestia-zkevm/#ef1ca4a0)
+#24 1042.8    Compiling evolve-tee v0.1.0 (/build/app)
+#24 1043.5     Finished `release` profile [optimized] target(s) in 17m 23s
+#24 DONE 1043.9s
+
+#27 [builder 17/19] COPY app/src ./app/src
+#27 DONE 0.5s
+
+#28 [builder 18/19] COPY light-client/src ./light-client/src
+#28 DONE 0.0s
+
+#29 [builder 19/19] RUN touch app/src/main.rs light-client/src/lib.rs && cargo build --release -p evolve-tee
+#29 0.978    Compiling light-client v0.1.0 (/build/light-client)
+#29 0.982 warning: unexpected `cfg` condition value: `borsh`
+#29 0.982    --> types/src/lib.rs:176:12
+#29 0.982     |
+#29 0.982 176 | #[cfg_attr(feature = "borsh", derive(BorshSerialize, BorshDeserialize))]
+#29 0.982     |            ^^^^^^^^^^^^^^^^^ help: remove the condition
+#29 0.982     |
+#29 0.982     = note: no expected values for `feature`
+#29 0.982     = help: consider adding `borsh` as a feature in `Cargo.toml`
+#29 0.982     = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+#29 0.982     = note: `#[warn(unexpected_cfgs)]` on by default
+#29 0.982 
+#29 0.982 warning: unexpected `cfg` condition value: `borsh_schema`
+#29 0.982    --> types/src/lib.rs:177:12
+#29 0.982     |
+#29 0.982 177 | #[cfg_attr(feature = "borsh_schema", derive(BorshSchema))]
+#29 0.982     |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the condition
+#29 0.982     |
+#29 0.982     = note: no expected values for `feature`
+#29 0.982     = help: consider adding `borsh_schema` as a feature in `Cargo.toml`
+#29 0.982     = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+#29 0.982 
+#29 0.982 warning: unexpected `cfg` condition value: `borsh`
+#29 0.982    --> types/src/lib.rs:185:12
+#29 0.982     |
+#29 0.982 185 | #[cfg_attr(feature = "borsh", derive(BorshSerialize, BorshDeserialize))]
+#29 0.982     |            ^^^^^^^^^^^^^^^^^ help: remove the condition
+#29 0.982     |
+#29 0.982     = note: no expected values for `feature`
+#29 0.982     = help: consider adding `borsh` as a feature in `Cargo.toml`
+#29 0.982     = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+#29 0.982 
+#29 0.982 warning: unexpected `cfg` condition value: `borsh_schema`
+#29 0.982    --> types/src/lib.rs:186:12
+#29 0.982     |
+#29 0.982 186 | #[cfg_attr(feature = "borsh_schema", derive(BorshSchema))]
+#29 0.982     |            ^^^^^^^^^^^^^^^^^^^^^^^^ help: remove the condition
+#29 0.982     |
+#29 0.982     = note: no expected values for `feature`
+#29 0.982     = help: consider adding `borsh_schema` as a feature in `Cargo.toml`
+#29 0.982     = note: see <https://doc.rust-lang.org/nightly/rustc/check-cfg/cargo-specifics.html> for more information about checking conditional configuration
+#29 0.982 
+#29 0.983 warning: `types` (lib) generated 4 warnings
+#29 3.581 warning: light-client@0.1.0: rustc +succinct --version: "rustc 1.88.0-dev\n"
+#29 3.581 warning: light-client@0.1.0: circuit built at 2026-01-05 17:43:48
+#29 6.849    Compiling evolve-tee v0.1.0 (/build/app)
+#29 19.25     Finished `release` profile [optimized] target(s) in 19.03s
+#29 DONE 19.3s
+
+#30 [stage-1 4/5] COPY --from=builder /build/target/release/evolve-tee .
+#30 DONE 0.1s
+
+#31 [stage-1 5/5] COPY config/ /root/.ev-prover/config/
+#31 DONE 0.0s
+
+#32 exporting to image
+#32 exporting layers
+#32 exporting layers 2.3s done
+#32 exporting manifest sha256:0ba0e98ae4578c400fcd12d4bb6ca8f89ac2fdcc8555f31ea1cba2caa1735df3 0.0s done
+#32 exporting config sha256:cb6042d1c98ad3733c60313adf042d244503a375436c42402844f6dee7a9533b done
+#32 exporting attestation manifest sha256:aec71866f9662ed7c8fc7eb8d4e647b0311b11c9a266cf34de315942b870a54e done
+#32 exporting manifest list sha256:83ec84616e2bee6dac276fb4e48dfd4bc80f36e1369b8447c74416c4393630e0 done
+#32 naming to docker.io/jonas089/evolve-tee:latest done
+#32 DONE 2.4s
+
+View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/hf8dnvi2q0a2s9z02afepcb17

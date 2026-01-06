@@ -1,6 +1,7 @@
 #![no_main]
 
 sp1_zkvm::entrypoint!(main);
+use sha2::{Digest, Sha256};
 use types::{
     EnclaveReport, EventLog, Inputs, Report, TDReport10, TDReport15, VerifiedReport,
     replay_event_logs, validate_tcb,
@@ -89,5 +90,18 @@ pub fn main() {
         ppid: verified_report.ppid.clone(),
     };
     validate_tcb(&verifed_report_alias);
-    sp1_zkvm::io::commit_slice(Vec::new().as_slice());
+
+    // Verify that the hash of the attested output matches the report_data
+    let output_hash = Sha256::digest(&inputs.output);
+    let report_data = match &verifed_report_alias.report {
+        Report::TD10(r) => &r.report_data,
+        Report::TD15(r) => &r.base.report_data,
+        Report::SgxEnclave(r) => &r.report_data,
+    };
+    // The first 32 bytes of report_data should equal the SHA-256 hash of the output
+    if &output_hash[..] != &report_data[..32] {
+        panic!("Output hash does not match report_data");
+    }
+
+    sp1_zkvm::io::commit_slice(&inputs.output);
 }

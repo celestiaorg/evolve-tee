@@ -9,3 +9,4 @@ sp1-zkvm.workspace = true
 types.workspace = true
 dcap-qvl.workspace = true
 serde_json.workspace = true
+sha2.workspace = true

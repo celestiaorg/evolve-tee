@@ -2616,6 +2616,7 @@ version = "0.1.0"
 dependencies = [
  "dcap-qvl",
  "serde_json",
+ "sha2 0.10.9",
  "sp1-zkvm",
  "types",
 ]
@@ -5529,6 +5530,7 @@ dependencies = [
  "ev-zkevm-types 0.2.0 (git+https://github.com/celestiaorg/celestia-zkevm/?branch=jonas%2Fcelestia-root-verification)",
  "hex",
  "prost 0.12.6",
+ "reqwest 0.12.28",
  "reth-chainspec",
  "reth-primitives",
  "rsp-client-executor",
