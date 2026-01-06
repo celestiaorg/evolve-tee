@@ -198,38 +198,29 @@ pub async fn build_block_input_from_prefetched(
         });
     }
 
-    // First pass: Extract heights from all blobs
-    let mut heights = Vec::new();
+    // Process blobs to extract executor inputs
+    // Match the reference implementation logic exactly
+    let mut executor_inputs: Vec<EthClientExecutorInput> = Vec::new();
     let mut last_height = 0;
+
     for blob in blobs.as_slice() {
         let signed_data = match SignedData::decode(blob.data.as_slice()) {
             Ok(data) => data,
             Err(_) => continue,
         };
         let data = signed_data.data.ok_or_else(|| anyhow!("Data not found"))?;
-        let height = data
-            .metadata
-            .ok_or_else(|| anyhow!("Metadata not found"))?
-            .height;
+        let height = data.metadata.ok_or_else(|| anyhow!("Metadata not found"))?.height;
         last_height = height;
-        heights.push(height);
-    }
 
-    // Second pass: Generate all executor inputs in parallel with limited concurrency
-    // This allows RPC calls to happen concurrently instead of sequentially,
-    // while preventing connection pool exhaustion
-    use futures::stream::{StreamExt, TryStreamExt};
-
-    let executor_inputs: Vec<EthClientExecutorInput> = futures::stream::iter(heights)
-        .map(|height| {
-            let chain_spec = chain_context.chain_spec();
-            let genesis = chain_context.genesis();
-            let provider = chain_context.evm_provider();
-            async move { generate_executor_input(chain_spec, genesis, provider, height).await }
-        })
-        .buffered(MAX_CONCURRENCY)
-        .try_collect()
+        let client_executor_input = generate_executor_input(
+            chain_context.chain_spec(),
+            chain_context.genesis(),
+            chain_context.evm_provider(),
+            height,
+        )
         .await?;
+        executor_inputs.push(client_executor_input);
+    }
 
     // Construct the block execution input
     let input = BlockExecInput {
@@ -245,14 +236,17 @@ pub async fn build_block_input_from_prefetched(
     };
 
     // Update trusted state based on the last EVM block processed
-    let block = chain_context
-        .evm_provider()
-        .get_block_by_number(last_height.into())
-        .await?
-        .ok_or_else(|| anyhow!("Block {last_height} not found"))?;
+    // Only update if we actually processed blocks (last_height > 0)
+    if last_height > 0 {
+        let block = chain_context
+            .evm_provider()
+            .get_block_by_number(last_height.into())
+            .await?
+            .ok_or_else(|| anyhow!("Block {last_height} not found"))?;
 
-    *trusted_height = last_height;
-    *trusted_root = block.header.state_root;
+        *trusted_height = last_height;
+        *trusted_root = block.header.state_root;
+    }
 
     Ok(input)
 }

@@ -8,10 +8,9 @@ use celestia_rpc::HeaderClient;
 use dstack_verifier::Attestation;
 use ev_prover::{config::Config, prover::chain::ChainContext};
 use ev_zkevm_types::programs::block::State;
-use futures::future::try_join_all;
 use light_client::{
-    CIRCUIT_ELF, build_block_input_from_prefetched, get_light_block, prefetch_celestia_data,
-    prefetch_celestia_data_batch, verify_blocks,
+    CIRCUIT_ELF, build_block_input_from_prefetched, get_light_block, prefetch_celestia_data_batch,
+    verify_blocks,
 };
 use serde::Deserialize;
 use sp1_sdk::{ProverClient, SP1Stdin};
@@ -52,6 +51,8 @@ async fn test_compute_evolve_state_root() {
     config.rpc.evnode_rpc = "http://178.199.12.26:26658".to_string();
     config.rpc.evreth_rpc = "http://178.199.12.26:8545".to_string();
     config.rpc.evreth_ws = "ws://178.199.12.26:8546".to_string();
+    // Use the public key from the remote sequencer
+    config.pub_key = "04f525a5146348af127d72c78b53f5725c7d32ea99d064328cb25df6c677dc99".to_string();
 
     let chain_context = ChainContext::from_config(config, Arc::new(ism_client))
         .await
@@ -83,28 +84,18 @@ async fn test_compute_evolve_state_root() {
         .unwrap()
         .height()
         .value();
-    println!(
-        "Building block inputs from {} to {}...",
+
+    let prefetched = prefetch_celestia_data_batch(
+        chain_context.clone(),
         trusted_celestia_height + 1,
-        celestia_head
-    );
-
-    // Phase 1: Prefetch all Celestia data in parallel
-    let heights: Vec<u64> = (trusted_celestia_height + 1..=celestia_head).collect();
-    println!("  Prefetching {} blocks in parallel...", heights.len());
-
-    let prefetch_futures = heights.iter().map(|&h| {
-        let ctx = chain_context.clone();
-        async move { prefetch_celestia_data(ctx, h).await.map(|data| (h, data)) }
-    });
-
-    let prefetched: Vec<_> = try_join_all(prefetch_futures)
-        .await
-        .expect("Failed to prefetch Celestia data");
+        celestia_head,
+    )
+    .await
+    .expect("Failed to prefetch Celestia data");
 
     // Phase 2: Process sequentially to handle trusted state updates
     let mut block_inputs = Vec::new();
-    for (_block_number, prefetched_data) in prefetched {
+    for prefetched_data in prefetched {
         let input = build_block_input_from_prefetched(
             chain_context.clone(),
             prefetched_data,
@@ -115,7 +106,6 @@ async fn test_compute_evolve_state_root() {
         .unwrap();
         block_inputs.push(input);
     }
-    println!("Done building {} block inputs", block_inputs.len());
 
     // get light blocks
     let trusted_light_block = get_light_block(&tendermint_client, trusted_celestia_height)
@@ -126,13 +116,11 @@ async fn test_compute_evolve_state_root() {
         .unwrap();
 
     // Native block verification (replaces SP1 execution)
-    let start = std::time::Instant::now();
     let output = verify_blocks(block_inputs, trusted_light_block, new_light_block)
         .await
         .unwrap();
-    let elapsed = start.elapsed();
-    println!("Verification completed in {:?}", elapsed);
-    println!("Output: {:?}", output);
+
+    println!("Output: {:?}", hex::encode(output.new_state.state_root));
 }
 
 /// Tests verification of a TEE attestation quote using DCAP collateral.
@@ -177,14 +165,9 @@ async fn test_verify_quote() {
         .expect("Failed to verify collateral");
 
     // Decode app info
-    match verified_attestation.decode_app_info(false) {
-        Ok(info) => {
-            println!("Device ID: {}", hex::encode(info.device_id));
-        }
-        Err(e) => {
-            panic!("Failed to decode app info: {}", e);
-        }
-    };
+    verified_attestation
+        .decode_app_info(false)
+        .expect("Failed to decode app info");
 }
 
 /// Tests ZK proof generation for TEE attestation verification.
@@ -225,9 +208,7 @@ async fn test_generate_proof() {
     let (pk, _vk) = prover_client.setup(CIRCUIT_ELF);
     let mut stdin = SP1Stdin::new();
     stdin.write(&inputs);
-    let proof = prover_client.prove(&pk, &stdin).compressed().run().unwrap();
-    println!("Proof generated successfully");
-    println!("Public values: {:?}", proof.public_values);
+    let _proof = prover_client.prove(&pk, &stdin).compressed().run().unwrap();
 }
 
 /// Response from the TEE app's `/attestation` endpoint.
@@ -263,8 +244,6 @@ async fn test_attestation_proof_from_tee() {
     let tee_app_url =
         std::env::var("TEE_APP_URL").expect("TEE_APP_URL environment variable is not set");
 
-    println!("Fetching attestation from {}...", tee_app_url);
-
     // Fetch attestation from the TEE app
     let client = reqwest::Client::new();
     let response = client
@@ -291,15 +270,10 @@ async fn test_attestation_proof_from_tee() {
         .expect("Missing event_log in response");
     let output_hex = attestation.output.expect("Missing output in response");
 
-    println!("Attestation received successfully");
-    println!("Output length: {} bytes", output_hex.len() / 2);
-
     // Decode the hex-encoded values
     let quote = hex::decode(&quote_hex).expect("Failed to decode quote hex");
     let event_log = event_log_str.as_bytes();
     let output = hex::decode(&output_hex).expect("Failed to decode output hex");
-
-    println!("Fetching collateral...");
 
     // Get collateral for the quote
     let collateral = dcap_qvl::collateral::get_collateral(
@@ -325,15 +299,11 @@ async fn test_attestation_proof_from_tee() {
         now,
     };
 
-    println!("Setting up prover...");
-
     let prover_client = ProverClient::from_env();
     let (pk, vk) = prover_client.setup(CIRCUIT_ELF);
 
     let mut stdin = SP1Stdin::new();
     stdin.write(&inputs);
-
-    println!("Generating proof...");
 
     let proof = prover_client
         .prove(&pk, &stdin)
@@ -341,23 +311,10 @@ async fn test_attestation_proof_from_tee() {
         .run()
         .expect("Failed to generate proof");
 
-    // write proof to file
-    std::fs::write("proof.bin", proof.bytes()).expect("Failed to write proof to file");
-    // write public outputs to file
-    std::fs::write("public_outputs.bin", proof.public_values.to_vec())
-        .expect("Failed to write public outputs to file");
-    // write elf to file
-    std::fs::write("circuit.elf", CIRCUIT_ELF).expect("Failed to write elf to file");
-
-    println!("Proof generated successfully!");
-    println!("Public values: {:?}", proof.public_values);
-
     // Verify the proof
     prover_client
         .verify(&proof, &vk)
         .expect("Failed to verify proof");
-
-    println!("Proof verified successfully!");
 }
 
 /// Test that verifies a pre-generated proof from test fixtures.
@@ -379,15 +336,9 @@ fn test_verify_attestation_sp1_proof() {
         std::fs::read(public_outputs_path).expect("Failed to read public_outputs.bin");
     let circuit_elf = std::fs::read(circuit_elf_path).expect("Failed to read circuit.elf");
 
-    println!("Loaded proof: {} bytes", proof_bytes.len());
-    println!("Loaded public values: {} bytes", public_values_bytes.len());
-    println!("Loaded circuit ELF: {} bytes", circuit_elf.len());
-
     // Setup prover client and get verification key from the ELF
     let prover_client = ProverClient::from_env();
     let (_pk, vk) = prover_client.setup(&circuit_elf);
-
-    println!("Verification key hash: {}", vk.bytes32());
 
     // Verify the Groth16 proof using raw bytes
     Groth16Verifier::verify(
@@ -397,8 +348,6 @@ fn test_verify_attestation_sp1_proof() {
         &sp1_verifier::GROTH16_VK_BYTES,
     )
     .expect("Failed to verify Groth16 proof from fixture");
-
-    println!("Groth16 proof from fixture verified successfully!");
 }
 
 /// Tests that prefetch_celestia_data_batch preserves the order of results.
@@ -424,6 +373,8 @@ async fn test_batch_prefetch_preserves_order() {
     config.rpc.evnode_rpc = "http://178.199.12.26:26658".to_string();
     config.rpc.evreth_rpc = "http://178.199.12.26:8545".to_string();
     config.rpc.evreth_ws = "ws://178.199.12.26:8546".to_string();
+    // Use the public key from the remote sequencer
+    config.pub_key = "04f525a5146348af127d72c78b53f5725c7d32ea99d064328cb25df6c677dc99".to_string();
 
     let chain_context = ChainContext::from_config(config, Arc::new(ism_client))
         .await
@@ -442,16 +393,9 @@ async fn test_batch_prefetch_preserves_order() {
     let from_height = celestia_head.saturating_sub(20);
     let to_height = celestia_head;
 
-    println!(
-        "Fetching blocks from {} to {} using batch prefetch...",
-        from_height, to_height
-    );
-
     let prefetched = prefetch_celestia_data_batch(chain_context, from_height, to_height)
         .await
         .expect("Failed to batch prefetch Celestia data");
-
-    println!("Received {} results", prefetched.len());
 
     // Verify we got the expected number of results
     let expected_count = (to_height - from_height + 1) as usize;
@@ -473,6 +417,4 @@ async fn test_batch_prefetch_preserves_order() {
         );
         expected_height += 1;
     }
-
-    println!("All blocks are in correct sequential order");
 }
