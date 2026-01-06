@@ -1,508 +1,0 @@
-#0 building with "desktop-linux" instance using docker driver
-
-#1 [internal] load build definition from Dockerfile
-#1 transferring dockerfile: 1.00kB done
-#1 DONE 0.0s
-
-#2 [internal] load metadata for docker.io/library/debian:bookworm-slim
-#2 ...
-
-#3 [auth] library/debian:pull token for registry-1.docker.io
-#3 DONE 0.0s
-
-#4 [auth] library/rust:pull token for registry-1.docker.io
-#4 DONE 0.0s
-
-#5 [internal] load metadata for docker.io/library/rust:1.88
-#5 ...
-
-#2 [internal] load metadata for docker.io/library/debian:bookworm-slim
-#2 DONE 1.6s
-
-#5 [internal] load metadata for docker.io/library/rust:1.88
-#5 DONE 1.9s
-
-#6 [internal] load .dockerignore
-#6 transferring context: 2B done
-#6 DONE 0.0s
-
-#7 [internal] load build context
-#7 transferring context: 299.87kB done
-#7 DONE 0.0s
-
-#8 [stage-1 1/4] FROM docker.io/library/debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c
-#8 resolve docker.io/library/debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c done
-#8 sha256:0347dcb76707f7d71a7c0b3a5f4a63b97cdd9923e637e67ad65b3b2d4ba05942 0B / 28.23MB 0.2s
-#8 sha256:0347dcb76707f7d71a7c0b3a5f4a63b97cdd9923e637e67ad65b3b2d4ba05942 5.24MB / 28.23MB 0.6s
-#8 sha256:0347dcb76707f7d71a7c0b3a5f4a63b97cdd9923e637e67ad65b3b2d4ba05942 10.49MB / 28.23MB 0.8s
-#8 sha256:0347dcb76707f7d71a7c0b3a5f4a63b97cdd9923e637e67ad65b3b2d4ba05942 14.68MB / 28.23MB 0.9s
-#8 sha256:0347dcb76707f7d71a7c0b3a5f4a63b97cdd9923e637e67ad65b3b2d4ba05942 17.83MB / 28.23MB 1.1s
-#8 sha256:0347dcb76707f7d71a7c0b3a5f4a63b97cdd9923e637e67ad65b3b2d4ba05942 24.12MB / 28.23MB 1.2s
-#8 sha256:0347dcb76707f7d71a7c0b3a5f4a63b97cdd9923e637e67ad65b3b2d4ba05942 28.23MB / 28.23MB 1.3s done
-#8 DONE 1.3s
-
-#9 [builder 1/9] FROM docker.io/library/rust:1.88@sha256:af306cfa71d987911a781c37b59d7d67d934f49684058f96cf72079c3626bfe0
-#9 resolve docker.io/library/rust:1.88@sha256:af306cfa71d987911a781c37b59d7d67d934f49684058f96cf72079c3626bfe0 0.0s done
-#9 sha256:94b9ed0713840a284100e368adfdffd34e6ff581cf29aac352a543e650e7ca78 33.55MB / 205.06MB 1.2s
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 8.39MB / 211.36MB 1.2s
-#9 sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553 2.10MB / 64.40MB 1.2s
-#9 sha256:c2e76af9483f2d17a3e370639403df2c53a3da1480d533116a8694cd91f15d5a 0B / 24.02MB 0.2s
-#9 sha256:94b9ed0713840a284100e368adfdffd34e6ff581cf29aac352a543e650e7ca78 46.14MB / 205.06MB 1.5s
-#9 ...
-
-#8 [stage-1 1/4] FROM docker.io/library/debian:bookworm-slim@sha256:d5d3f9c23164ea16f31852f95bd5959aad1c5e854332fe00f7b3a20fcc9f635c
-#8 extracting sha256:0347dcb76707f7d71a7c0b3a5f4a63b97cdd9923e637e67ad65b3b2d4ba05942 0.4s done
-#8 DONE 1.7s
-
-#9 [builder 1/9] FROM docker.io/library/rust:1.88@sha256:af306cfa71d987911a781c37b59d7d67d934f49684058f96cf72079c3626bfe0
-#9 sha256:94b9ed0713840a284100e368adfdffd34e6ff581cf29aac352a543e650e7ca78 65.01MB / 205.06MB 1.8s
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 20.97MB / 211.36MB 1.8s
-#9 sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553 7.34MB / 64.40MB 1.8s
-#9 sha256:c2e76af9483f2d17a3e370639403df2c53a3da1480d533116a8694cd91f15d5a 2.10MB / 24.02MB 1.1s
-#9 sha256:94b9ed0713840a284100e368adfdffd34e6ff581cf29aac352a543e650e7ca78 80.74MB / 205.06MB 2.4s
-#9 sha256:c2e76af9483f2d17a3e370639403df2c53a3da1480d533116a8694cd91f15d5a 4.19MB / 24.02MB 1.4s
-#9 sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553 12.58MB / 64.40MB 2.7s
-#9 sha256:94b9ed0713840a284100e368adfdffd34e6ff581cf29aac352a543e650e7ca78 95.42MB / 205.06MB 2.9s
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 33.55MB / 211.36MB 2.9s
-#9 sha256:c2e76af9483f2d17a3e370639403df2c53a3da1480d533116a8694cd91f15d5a 7.34MB / 24.02MB 1.7s
-#9 sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553 16.78MB / 64.40MB 3.0s
-#9 sha256:94b9ed0713840a284100e368adfdffd34e6ff581cf29aac352a543e650e7ca78 106.95MB / 205.06MB 3.2s
-#9 sha256:c2e76af9483f2d17a3e370639403df2c53a3da1480d533116a8694cd91f15d5a 10.49MB / 24.02MB 2.0s
-#9 sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553 20.97MB / 64.40MB 3.3s
-#9 sha256:c2e76af9483f2d17a3e370639403df2c53a3da1480d533116a8694cd91f15d5a 12.58MB / 24.02MB 2.1s
-#9 sha256:94b9ed0713840a284100e368adfdffd34e6ff581cf29aac352a543e650e7ca78 120.59MB / 205.06MB 3.5s
-#9 sha256:c2e76af9483f2d17a3e370639403df2c53a3da1480d533116a8694cd91f15d5a 15.73MB / 24.02MB 2.4s
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 48.23MB / 211.36MB 3.8s
-#9 sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553 26.21MB / 64.40MB 3.8s
-#9 sha256:94b9ed0713840a284100e368adfdffd34e6ff581cf29aac352a543e650e7ca78 136.31MB / 205.06MB 3.9s
-#9 sha256:c2e76af9483f2d17a3e370639403df2c53a3da1480d533116a8694cd91f15d5a 18.87MB / 24.02MB 2.7s
-#9 sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553 31.46MB / 64.40MB 4.1s
-#9 sha256:c2e76af9483f2d17a3e370639403df2c53a3da1480d533116a8694cd91f15d5a 22.02MB / 24.02MB 3.0s
-#9 sha256:94b9ed0713840a284100e368adfdffd34e6ff581cf29aac352a543e650e7ca78 152.04MB / 205.06MB 4.4s
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 60.82MB / 211.36MB 4.4s
-#9 sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553 36.70MB / 64.40MB 4.4s
-#9 sha256:c2e76af9483f2d17a3e370639403df2c53a3da1480d533116a8694cd91f15d5a 24.02MB / 24.02MB 3.2s done
-#9 sha256:94b9ed0713840a284100e368adfdffd34e6ff581cf29aac352a543e650e7ca78 169.87MB / 205.06MB 4.8s
-#9 sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553 40.89MB / 64.40MB 4.7s
-#9 sha256:ebed137c7c18cb1906fb8314eabc10611ddf49a281f8c1b5eab987a7137f749f 0B / 48.49MB 0.2s
-#9 sha256:94b9ed0713840a284100e368adfdffd34e6ff581cf29aac352a543e650e7ca78 180.36MB / 205.06MB 5.1s
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 75.50MB / 211.36MB 5.0s
-#9 sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553 48.23MB / 64.40MB 5.0s
-#9 sha256:ebed137c7c18cb1906fb8314eabc10611ddf49a281f8c1b5eab987a7137f749f 4.19MB / 48.49MB 0.8s
-#9 sha256:94b9ed0713840a284100e368adfdffd34e6ff581cf29aac352a543e650e7ca78 197.13MB / 205.06MB 5.6s
-#9 sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553 55.57MB / 64.40MB 5.4s
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 89.13MB / 211.36MB 5.6s
-#9 sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553 59.77MB / 64.40MB 5.6s
-#9 sha256:ebed137c7c18cb1906fb8314eabc10611ddf49a281f8c1b5eab987a7137f749f 7.34MB / 48.49MB 1.1s
-#9 sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553 64.40MB / 64.40MB 5.8s done
-#9 sha256:94b9ed0713840a284100e368adfdffd34e6ff581cf29aac352a543e650e7ca78 205.06MB / 205.06MB 5.9s done
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 102.76MB / 211.36MB 6.0s
-#9 sha256:ebed137c7c18cb1906fb8314eabc10611ddf49a281f8c1b5eab987a7137f749f 10.49MB / 48.49MB 1.4s
-#9 sha256:ebed137c7c18cb1906fb8314eabc10611ddf49a281f8c1b5eab987a7137f749f 13.63MB / 48.49MB 1.5s
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 120.59MB / 211.36MB 6.5s
-#9 sha256:ebed137c7c18cb1906fb8314eabc10611ddf49a281f8c1b5eab987a7137f749f 18.87MB / 48.49MB 1.8s
-#9 sha256:ebed137c7c18cb1906fb8314eabc10611ddf49a281f8c1b5eab987a7137f749f 23.07MB / 48.49MB 2.0s
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 133.17MB / 211.36MB 6.8s
-#9 sha256:ebed137c7c18cb1906fb8314eabc10611ddf49a281f8c1b5eab987a7137f749f 28.31MB / 48.49MB 2.1s
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 147.85MB / 211.36MB 7.1s
-#9 sha256:ebed137c7c18cb1906fb8314eabc10611ddf49a281f8c1b5eab987a7137f749f 34.60MB / 48.49MB 2.4s
-#9 sha256:ebed137c7c18cb1906fb8314eabc10611ddf49a281f8c1b5eab987a7137f749f 39.85MB / 48.49MB 2.6s
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 160.43MB / 211.36MB 7.4s
-#9 sha256:ebed137c7c18cb1906fb8314eabc10611ddf49a281f8c1b5eab987a7137f749f 42.99MB / 48.49MB 2.7s
-#9 sha256:ebed137c7c18cb1906fb8314eabc10611ddf49a281f8c1b5eab987a7137f749f 48.49MB / 48.49MB 2.9s done
-#9 extracting sha256:ebed137c7c18cb1906fb8314eabc10611ddf49a281f8c1b5eab987a7137f749f
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 182.45MB / 211.36MB 7.7s
-#9 extracting sha256:ebed137c7c18cb1906fb8314eabc10611ddf49a281f8c1b5eab987a7137f749f 0.5s done
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 208.67MB / 211.36MB 8.1s
-#9 extracting sha256:c2e76af9483f2d17a3e370639403df2c53a3da1480d533116a8694cd91f15d5a
-#9 sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 211.36MB / 211.36MB 8.2s done
-#9 extracting sha256:c2e76af9483f2d17a3e370639403df2c53a3da1480d533116a8694cd91f15d5a 0.2s done
-#9 extracting sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553
-#9 extracting sha256:37f838b71c6b82c581b7543a313255b8c99c23cc9d96c1ad6f9f5f208c942553 0.6s done
-#9 DONE 8.8s
-
-#10 [stage-1 2/4] RUN apt-get update && apt-get install -y     ca-certificates     && rm -rf /var/lib/apt/lists/*
-#10 0.385 Get:1 http://deb.debian.org/debian bookworm InRelease [151 kB]
-#10 0.727 Get:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
-#10 0.936 Get:3 http://deb.debian.org/debian-security bookworm-security InRelease [48.0 kB]
-#10 1.119 Get:4 http://deb.debian.org/debian bookworm/main amd64 Packages [8791 kB]
-#10 ...
-
-#9 [builder 1/9] FROM docker.io/library/rust:1.88@sha256:af306cfa71d987911a781c37b59d7d67d934f49684058f96cf72079c3626bfe0
-#9 extracting sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45
-#9 extracting sha256:873a4c80287477653c01b20948fc34bb1bacf0f826bcc2ddc3bd2fe25b342d45 1.9s done
-#9 DONE 10.7s
-
-#10 [stage-1 2/4] RUN apt-get update && apt-get install -y     ca-certificates     && rm -rf /var/lib/apt/lists/*
-#10 8.417 Get:5 http://deb.debian.org/debian bookworm-updates/main amd64 Packages [6924 B]
-#10 8.417 Get:6 http://deb.debian.org/debian-security bookworm-security/main amd64 Packages [290 kB]
-#10 9.325 Fetched 9342 kB in 9s (1025 kB/s)
-#10 9.325 Reading package lists...
-#10 9.836 Reading package lists...
-#10 10.26 Building dependency tree...
-#10 10.36 Reading state information...
-#10 10.46 The following additional packages will be installed:
-#10 10.46   libssl3 openssl
-#10 10.50 The following NEW packages will be installed:
-#10 10.50   ca-certificates libssl3 openssl
-#10 10.59 0 upgraded, 3 newly installed, 0 to remove and 0 not upgraded.
-#10 10.59 Need to get 3618 kB of archives.
-#10 10.59 After this operation, 8920 kB of additional disk space will be used.
-#10 10.59 Get:1 http://deb.debian.org/debian-security bookworm-security/main amd64 libssl3 amd64 3.0.17-1~deb12u3 [2028 kB]
-#10 ...
-
-#9 [builder 1/9] FROM docker.io/library/rust:1.88@sha256:af306cfa71d987911a781c37b59d7d67d934f49684058f96cf72079c3626bfe0
-#9 extracting sha256:94b9ed0713840a284100e368adfdffd34e6ff581cf29aac352a543e650e7ca78 1.6s done
-#9 DONE 12.4s
-
-#10 [stage-1 2/4] RUN apt-get update && apt-get install -y     ca-certificates     && rm -rf /var/lib/apt/lists/*
-#10 10.71 Get:2 http://deb.debian.org/debian-security bookworm-security/main amd64 openssl amd64 3.0.17-1~deb12u3 [1434 kB]
-#10 10.74 Get:3 http://deb.debian.org/debian bookworm/main amd64 ca-certificates all 20230311+deb12u1 [155 kB]
-#10 10.92 debconf: delaying package configuration, since apt-utils is not installed
-#10 10.96 Fetched 3618 kB in 0s (15.9 MB/s)
-#10 11.03 Selecting previously unselected package libssl3:amd64.
-#10 11.03 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 6095 files and directories currently installed.)
-#10 11.04 Preparing to unpack .../libssl3_3.0.17-1~deb12u3_amd64.deb ...
-#10 11.04 Unpacking libssl3:amd64 (3.0.17-1~deb12u3) ...
-#10 11.22 Selecting previously unselected package openssl.
-#10 11.22 Preparing to unpack .../openssl_3.0.17-1~deb12u3_amd64.deb ...
-#10 11.22 Unpacking openssl (3.0.17-1~deb12u3) ...
-#10 11.37 Selecting previously unselected package ca-certificates.
-#10 11.37 Preparing to unpack .../ca-certificates_20230311+deb12u1_all.deb ...
-#10 11.38 Unpacking ca-certificates (20230311+deb12u1) ...
-#10 11.46 Setting up libssl3:amd64 (3.0.17-1~deb12u3) ...
-#10 11.47 Setting up openssl (3.0.17-1~deb12u3) ...
-#10 11.49 Setting up ca-certificates (20230311+deb12u1) ...
-#10 11.75 debconf: unable to initialize frontend: Dialog
-#10 11.75 debconf: (TERM is not set, so the dialog frontend is not usable.)
-#10 11.75 debconf: falling back to frontend: Readline
-#10 11.75 debconf: unable to initialize frontend: Readline
-#10 11.75 debconf: (Can't locate Term/ReadLine.pm in @INC (you may need to install the Term::ReadLine module) (@INC contains: /etc/perl /usr/local/lib/x86_64-linux-gnu/perl/5.36.0 /usr/local/share/perl/5.36.0 /usr/lib/x86_64-linux-gnu/perl5/5.36 /usr/share/perl5 /usr/lib/x86_64-linux-gnu/perl-base /usr/lib/x86_64-linux-gnu/perl/5.36 /usr/share/perl/5.36 /usr/local/lib/site_perl) at /usr/share/perl5/Debconf/FrontEnd/Readline.pm line 7.)
-#10 11.75 debconf: falling back to frontend: Teletype
-#10 16.17 Updating certificates in /etc/ssl/certs...
-#10 ...
-
-#11 [builder 2/9] RUN apt-get update && apt-get install -y     clang     libclang-dev     && rm -rf /var/lib/apt/lists/*
-#11 0.253 Get:1 http://deb.debian.org/debian bookworm InRelease [151 kB]
-#11 0.308 Get:2 http://deb.debian.org/debian bookworm-updates InRelease [55.4 kB]
-#11 0.308 Get:3 http://deb.debian.org/debian-security bookworm-security InRelease [48.0 kB]
-#11 0.773 Get:4 http://deb.debian.org/debian bookworm/main amd64 Packages [8791 kB]
-#11 1.249 Get:5 http://deb.debian.org/debian bookworm-updates/main amd64 Packages [6924 B]
-#11 1.677 Get:6 http://deb.debian.org/debian-security bookworm-security/main amd64 Packages [290 kB]
-#11 1.842 Fetched 9342 kB in 2s (5678 kB/s)
-#11 1.842 Reading package lists...
-#11 2.283 Reading package lists...
-#11 2.710 Building dependency tree...
-#11 2.802 Reading state information...
-#11 2.899 The following additional packages will be installed:
-#11 2.899   binfmt-support clang-14 curl lib32gcc-s1 lib32stdc++6 libc-bin libc-dev-bin
-#11 2.899   libc6 libc6-dev libc6-i386 libclang-14-dev libclang-common-14-dev
-#11 2.899   libclang-cpp14 libclang-rt-14-dev libclang1-14 libcurl3-gnutls libcurl3-nss
-#11 2.899   libcurl4 libcurl4-openssl-dev libgc1 libllvm14 libnspr4 libnss3
-#11 2.899   libobjc-12-dev libobjc4 libpfm4 libpipeline1 libz3-4 libz3-dev llvm-14
-#11 2.899   llvm-14-dev llvm-14-linker-tools llvm-14-runtime llvm-14-tools
-#11 2.900   nss-plugin-pem python3-pkg-resources python3-pygments python3-yaml
-#11 2.900 Suggested packages:
-#11 2.900   clang-14-doc wasi-libc glibc-doc libc-l10n locales libnss-nis libnss-nisplus
-#11 2.900   manpages-dev libcurl4-doc libidn-dev libldap2-dev librtmp-dev libssh2-1-dev
-#11 2.900   llvm-14-doc python3-setuptools python-pygments-doc ttf-bitstream-vera
-#11 2.900 Recommended packages:
-#11 2.900   manpages manpages-dev libc-devtools
-#11 3.114 The following NEW packages will be installed:
-#11 3.114   binfmt-support clang clang-14 lib32gcc-s1 lib32stdc++6 libc6-i386
-#11 3.114   libclang-14-dev libclang-common-14-dev libclang-cpp14 libclang-dev
-#11 3.114   libclang-rt-14-dev libclang1-14 libcurl3-nss libgc1 libllvm14 libnspr4
-#11 3.114   libnss3 libobjc-12-dev libobjc4 libpfm4 libpipeline1 libz3-4 libz3-dev
-#11 3.114   llvm-14 llvm-14-dev llvm-14-linker-tools llvm-14-runtime llvm-14-tools
-#11 3.114   nss-plugin-pem python3-pkg-resources python3-pygments python3-yaml
-#11 3.115 The following packages will be upgraded:
-#11 3.115   curl libc-bin libc-dev-bin libc6 libc6-dev libcurl3-gnutls libcurl4
-#11 3.115   libcurl4-openssl-dev
-#11 3.200 8 upgraded, 32 newly installed, 0 to remove and 86 not upgraded.
-#11 3.200 Need to get 136 MB of archives.
-#11 3.200 After this operation, 901 MB of additional disk space will be used.
-#11 3.200 Get:1 http://deb.debian.org/debian bookworm/main amd64 libc6-dev amd64 2.36-9+deb12u13 [1904 kB]
-#11 3.372 Get:2 http://deb.debian.org/debian bookworm/main amd64 libc-dev-bin amd64 2.36-9+deb12u13 [47.4 kB]
-#11 3.385 Get:3 http://deb.debian.org/debian bookworm/main amd64 libc6 amd64 2.36-9+deb12u13 [2758 kB]
-#11 3.430 Get:4 http://deb.debian.org/debian bookworm/main amd64 libc-bin amd64 2.36-9+deb12u13 [609 kB]
-#11 3.433 Get:5 http://deb.debian.org/debian bookworm/main amd64 libpipeline1 amd64 1.5.7-1 [38.5 kB]
-#11 3.433 Get:6 http://deb.debian.org/debian bookworm/main amd64 binfmt-support amd64 2.2.2-2 [64.0 kB]
-#11 3.434 Get:7 http://deb.debian.org/debian bookworm/main amd64 libz3-4 amd64 4.8.12-3.1 [7216 kB]
-#11 3.568 Get:8 http://deb.debian.org/debian bookworm/main amd64 libllvm14 amd64 1:14.0.6-12 [21.8 MB]
-#11 4.233 Get:9 http://deb.debian.org/debian bookworm/main amd64 libclang-cpp14 amd64 1:14.0.6-12 [11.1 MB]
-#11 4.665 Get:10 http://deb.debian.org/debian bookworm/main amd64 libgc1 amd64 1:8.2.2-3 [245 kB]
-#11 4.667 Get:11 http://deb.debian.org/debian bookworm/main amd64 libobjc4 amd64 12.2.0-14+deb12u1 [43.2 kB]
-#11 4.681 Get:12 http://deb.debian.org/debian bookworm/main amd64 libobjc-12-dev amd64 12.2.0-14+deb12u1 [170 kB]
-#11 4.697 Get:13 http://deb.debian.org/debian bookworm/main amd64 libclang-common-14-dev all 1:14.0.6-12 [890 kB]
-#11 4.720 Get:14 http://deb.debian.org/debian bookworm/main amd64 llvm-14-linker-tools amd64 1:14.0.6-12 [1288 kB]
-#11 4.758 Get:15 http://deb.debian.org/debian bookworm/main amd64 libclang1-14 amd64 1:14.0.6-12 [6157 kB]
-#11 5.089 Get:16 http://deb.debian.org/debian bookworm/main amd64 clang-14 amd64 1:14.0.6-12 [102 kB]
-#11 5.090 Get:17 http://deb.debian.org/debian bookworm/main amd64 clang amd64 1:14.0-55.7~deb12u1 [5144 B]
-#11 5.092 Get:18 http://deb.debian.org/debian bookworm/main amd64 libcurl4-openssl-dev amd64 7.88.1-10+deb12u14 [492 kB]
-#11 5.112 Get:19 http://deb.debian.org/debian bookworm/main amd64 curl amd64 7.88.1-10+deb12u14 [316 kB]
-#11 5.135 Get:20 http://deb.debian.org/debian bookworm/main amd64 libcurl4 amd64 7.88.1-10+deb12u14 [392 kB]
-#11 5.147 Get:21 http://deb.debian.org/debian bookworm/main amd64 libc6-i386 amd64 2.36-9+deb12u13 [2459 kB]
-#11 5.251 Get:22 http://deb.debian.org/debian bookworm/main amd64 lib32gcc-s1 amd64 12.2.0-14+deb12u1 [59.7 kB]
-#11 5.265 Get:23 http://deb.debian.org/debian bookworm/main amd64 lib32stdc++6 amd64 12.2.0-14+deb12u1 [643 kB]
-#11 5.294 Get:24 http://deb.debian.org/debian bookworm/main amd64 libclang-14-dev amd64 1:14.0.6-12 [23.1 MB]
-#11 5.836 Get:25 http://deb.debian.org/debian bookworm/main amd64 libclang-dev amd64 1:14.0-55.7~deb12u1 [4728 B]
-#11 5.836 Get:26 http://deb.debian.org/debian bookworm/main amd64 libclang-rt-14-dev amd64 1:14.0.6-12 [3275 kB]
-#11 5.868 Get:27 http://deb.debian.org/debian bookworm/main amd64 libcurl3-gnutls amd64 7.88.1-10+deb12u14 [386 kB]
-#11 5.872 Get:28 http://deb.debian.org/debian bookworm/main amd64 libnspr4 amd64 2:4.35-1 [113 kB]
-#11 5.964 Get:29 http://deb.debian.org/debian bookworm/main amd64 libnss3 amd64 2:3.87.1-1+deb12u1 [1331 kB]
-#11 5.990 Get:30 http://deb.debian.org/debian bookworm/main amd64 nss-plugin-pem amd64 1.0.8+1-1 [54.6 kB]
-#11 5.991 Get:31 http://deb.debian.org/debian bookworm/main amd64 libcurl3-nss amd64 7.88.1-10+deb12u14 [395 kB]
-#11 5.995 Get:32 http://deb.debian.org/debian bookworm/main amd64 libpfm4 amd64 4.13.0-1 [294 kB]
-#11 6.011 Get:33 http://deb.debian.org/debian bookworm/main amd64 libz3-dev amd64 4.8.12-3.1 [90.6 kB]
-#11 6.020 Get:34 http://deb.debian.org/debian bookworm/main amd64 llvm-14-runtime amd64 1:14.0.6-12 [477 kB]
-#11 6.040 Get:35 http://deb.debian.org/debian bookworm/main amd64 llvm-14 amd64 1:14.0.6-12 [11.7 MB]
-#11 6.230 Get:36 http://deb.debian.org/debian bookworm/main amd64 python3-pkg-resources all 66.1.1-1+deb12u2 [297 kB]
-#11 6.237 Get:37 http://deb.debian.org/debian bookworm/main amd64 python3-pygments all 2.14.0+dfsg-1 [783 kB]
-#11 6.251 Get:38 http://deb.debian.org/debian bookworm/main amd64 python3-yaml amd64 6.0-3+b2 [119 kB]
-#11 6.267 Get:39 http://deb.debian.org/debian bookworm/main amd64 llvm-14-tools amd64 1:14.0.6-12 [405 kB]
-#11 6.283 Get:40 http://deb.debian.org/debian bookworm/main amd64 llvm-14-dev amd64 1:14.0.6-12 [33.9 MB]
-#11 7.422 debconf: delaying package configuration, since apt-utils is not installed
-#11 7.473 Fetched 136 MB in 4s (33.1 MB/s)
-#11 7.547 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 23250 files and directories currently installed.)
-#11 7.555 Preparing to unpack .../libc6-dev_2.36-9+deb12u13_amd64.deb ...
-#11 7.563 Unpacking libc6-dev:amd64 (2.36-9+deb12u13) over (2.36-9+deb12u10) ...
-#11 8.119 Preparing to unpack .../libc-dev-bin_2.36-9+deb12u13_amd64.deb ...
-#11 8.124 Unpacking libc-dev-bin (2.36-9+deb12u13) over (2.36-9+deb12u10) ...
-#11 8.219 Preparing to unpack .../libc6_2.36-9+deb12u13_amd64.deb ...
-#11 8.441 debconf: unable to initialize frontend: Dialog
-#11 8.441 debconf: (TERM is not set, so the dialog frontend is not usable.)
-#11 8.441 debconf: falling back to frontend: Readline
-#11 8.498 debconf: unable to initialize frontend: Readline
-#11 8.498 debconf: (This frontend requires a controlling tty.)
-#11 8.498 debconf: falling back to frontend: Teletype
-#11 8.773 Unpacking libc6:amd64 (2.36-9+deb12u13) over (2.36-9+deb12u10) ...
-#11 9.215 Setting up libc6:amd64 (2.36-9+deb12u13) ...
-#11 9.448 debconf: unable to initialize frontend: Dialog
-#11 9.448 debconf: (TERM is not set, so the dialog frontend is not usable.)
-#11 9.448 debconf: falling back to frontend: Readline
-#11 9.501 debconf: unable to initialize frontend: Readline
-#11 9.501 debconf: (This frontend requires a controlling tty.)
-#11 9.501 debconf: falling back to frontend: Teletype
-#11 10.74 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 23250 files and directories currently installed.)
-#11 10.75 Preparing to unpack .../libc-bin_2.36-9+deb12u13_amd64.deb ...
-#11 10.75 Unpacking libc-bin (2.36-9+deb12u13) over (2.36-9+deb12u10) ...
-#11 10.89 Setting up libc-bin (2.36-9+deb12u13) ...
-#11 11.03 Selecting previously unselected package libpipeline1:amd64.
-#11 11.03 (Reading database ... (Reading database ... 5%(Reading database ... 10%(Reading database ... 15%(Reading database ... 20%(Reading database ... 25%(Reading database ... 30%(Reading database ... 35%(Reading database ... 40%(Reading database ... 45%(Reading database ... 50%(Reading database ... 55%(Reading database ... 60%(Reading database ... 65%(Reading database ... 70%(Reading database ... 75%(Reading database ... 80%(Reading database ... 85%(Reading database ... 90%(Reading database ... 95%(Reading database ... 100%(Reading database ... 23250 files and directories currently installed.)
-#11 11.04 Preparing to unpack .../00-libpipeline1_1.5.7-1_amd64.deb ...
-#11 11.04 Unpacking libpipeline1:amd64 (1.5.7-1) ...
-#11 11.13 Selecting previously unselected package binfmt-support.
-#11 11.13 Preparing to unpack .../01-binfmt-support_2.2.2-2_amd64.deb ...
-#11 11.15 Unpacking binfmt-support (2.2.2-2) ...
-#11 11.24 Selecting previously unselected package libz3-4:amd64.
-#11 11.24 Preparing to unpack .../02-libz3-4_4.8.12-3.1_amd64.deb ...
-#11 11.24 Unpacking libz3-4:amd64 (4.8.12-3.1) ...
-#11 11.68 Selecting previously unselected package libllvm14:amd64.
-#11 11.68 Preparing to unpack .../03-libllvm14_1%3a14.0.6-12_amd64.deb ...
-#11 11.69 Unpacking libllvm14:amd64 (1:14.0.6-12) ...
-#11 12.29 Selecting previously unselected package libclang-cpp14.
-#11 12.29 Preparing to unpack .../04-libclang-cpp14_1%3a14.0.6-12_amd64.deb ...
-#11 12.29 Unpacking libclang-cpp14 (1:14.0.6-12) ...
-#11 ...
-
-#10 [stage-1 2/4] RUN apt-get update && apt-get install -y     ca-certificates     && rm -rf /var/lib/apt/lists/*
-#10 23.32 142 added, 0 removed; done.
-#10 23.38 Processing triggers for libc-bin (2.36-9+deb12u13) ...
-#10 23.42 Processing triggers for ca-certificates (20230311+deb12u1) ...
-#10 23.47 Updating certificates in /etc/ssl/certs...
-#10 ...
-
-#11 [builder 2/9] RUN apt-get update && apt-get install -y     clang     libclang-dev     && rm -rf /var/lib/apt/lists/*
-#11 12.71 Selecting previously unselected package libgc1:amd64.
-#11 12.71 Preparing to unpack .../05-libgc1_1%3a8.2.2-3_amd64.deb ...
-#11 12.71 Unpacking libgc1:amd64 (1:8.2.2-3) ...
-#11 12.81 Selecting previously unselected package libobjc4:amd64.
-#11 12.81 Preparing to unpack .../06-libobjc4_12.2.0-14+deb12u1_amd64.deb ...
-#11 12.82 Unpacking libobjc4:amd64 (12.2.0-14+deb12u1) ...
-#11 12.91 Selecting previously unselected package libobjc-12-dev:amd64.
-#11 12.91 Preparing to unpack .../07-libobjc-12-dev_12.2.0-14+deb12u1_amd64.deb ...
-#11 12.91 Unpacking libobjc-12-dev:amd64 (12.2.0-14+deb12u1) ...
-#11 13.20 Selecting previously unselected package libclang-common-14-dev.
-#11 13.20 Preparing to unpack .../08-libclang-common-14-dev_1%3a14.0.6-12_all.deb ...
-#11 13.20 Unpacking libclang-common-14-dev (1:14.0.6-12) ...
-#11 13.34 Selecting previously unselected package llvm-14-linker-tools.
-#11 13.35 Preparing to unpack .../09-llvm-14-linker-tools_1%3a14.0.6-12_amd64.deb ...
-#11 13.35 Unpacking llvm-14-linker-tools (1:14.0.6-12) ...
-#11 13.50 Selecting previously unselected package libclang1-14.
-#11 13.50 Preparing to unpack .../10-libclang1-14_1%3a14.0.6-12_amd64.deb ...
-#11 13.51 Unpacking libclang1-14 (1:14.0.6-12) ...
-#11 13.88 Selecting previously unselected package clang-14.
-#11 13.88 Preparing to unpack .../11-clang-14_1%3a14.0.6-12_amd64.deb ...
-#11 13.88 Unpacking clang-14 (1:14.0.6-12) ...
-#11 13.98 Selecting previously unselected package clang.
-#11 13.98 Preparing to unpack .../12-clang_1%3a14.0-55.7~deb12u1_amd64.deb ...
-#11 13.98 Unpacking clang (1:14.0-55.7~deb12u1) ...
-#11 14.07 Preparing to unpack .../13-libcurl4-openssl-dev_7.88.1-10+deb12u14_amd64.deb ...
-#11 14.07 Unpacking libcurl4-openssl-dev:amd64 (7.88.1-10+deb12u14) over (7.88.1-10+deb12u12) ...
-#11 14.18 Preparing to unpack .../14-curl_7.88.1-10+deb12u14_amd64.deb ...
-#11 14.19 Unpacking curl (7.88.1-10+deb12u14) over (7.88.1-10+deb12u12) ...
-#11 14.30 Preparing to unpack .../15-libcurl4_7.88.1-10+deb12u14_amd64.deb ...
-#11 14.31 Unpacking libcurl4:amd64 (7.88.1-10+deb12u14) over (7.88.1-10+deb12u12) ...
-#11 14.42 Selecting previously unselected package libc6-i386.
-#11 14.42 Preparing to unpack .../16-libc6-i386_2.36-9+deb12u13_amd64.deb ...
-#11 14.47 Unpacking libc6-i386 (2.36-9+deb12u13) ...
-#11 14.69 Selecting previously unselected package lib32gcc-s1.
-#11 14.69 Preparing to unpack .../17-lib32gcc-s1_12.2.0-14+deb12u1_amd64.deb ...
-#11 14.70 Unpacking lib32gcc-s1 (12.2.0-14+deb12u1) ...
-#11 14.78 Selecting previously unselected package lib32stdc++6.
-#11 14.78 Preparing to unpack .../18-lib32stdc++6_12.2.0-14+deb12u1_amd64.deb ...
-#11 14.78 Unpacking lib32stdc++6 (12.2.0-14+deb12u1) ...
-#11 14.90 Selecting previously unselected package libclang-14-dev.
-#11 14.90 Preparing to unpack .../19-libclang-14-dev_1%3a14.0.6-12_amd64.deb ...
-#11 14.91 Unpacking libclang-14-dev (1:14.0.6-12) ...
-#11 15.62 Selecting previously unselected package libclang-dev.
-#11 15.62 Preparing to unpack .../20-libclang-dev_1%3a14.0-55.7~deb12u1_amd64.deb ...
-#11 15.63 Unpacking libclang-dev (1:14.0-55.7~deb12u1) ...
-#11 15.71 Selecting previously unselected package libclang-rt-14-dev:amd64.
-#11 15.71 Preparing to unpack .../21-libclang-rt-14-dev_1%3a14.0.6-12_amd64.deb ...
-#11 15.71 Unpacking libclang-rt-14-dev:amd64 (1:14.0.6-12) ...
-#11 15.95 Preparing to unpack .../22-libcurl3-gnutls_7.88.1-10+deb12u14_amd64.deb ...
-#11 15.96 Unpacking libcurl3-gnutls:amd64 (7.88.1-10+deb12u14) over (7.88.1-10+deb12u12) ...
-#11 16.06 Selecting previously unselected package libnspr4:amd64.
-#11 16.06 Preparing to unpack .../23-libnspr4_2%3a4.35-1_amd64.deb ...
-#11 16.07 Unpacking libnspr4:amd64 (2:4.35-1) ...
-#11 16.16 Selecting previously unselected package libnss3:amd64.
-#11 16.16 Preparing to unpack .../24-libnss3_2%3a3.87.1-1+deb12u1_amd64.deb ...
-#11 16.16 Unpacking libnss3:amd64 (2:3.87.1-1+deb12u1) ...
-#11 16.31 Selecting previously unselected package nss-plugin-pem:amd64.
-#11 16.32 Preparing to unpack .../25-nss-plugin-pem_1.0.8+1-1_amd64.deb ...
-#11 16.32 Unpacking nss-plugin-pem:amd64 (1.0.8+1-1) ...
-#11 16.41 Selecting previously unselected package libcurl3-nss:amd64.
-#11 16.41 Preparing to unpack .../26-libcurl3-nss_7.88.1-10+deb12u14_amd64.deb ...
-#11 16.41 Unpacking libcurl3-nss:amd64 (7.88.1-10+deb12u14) ...
-#11 16.52 Selecting previously unselected package libpfm4:amd64.
-#11 16.52 Preparing to unpack .../27-libpfm4_4.13.0-1_amd64.deb ...
-#11 16.52 Unpacking libpfm4:amd64 (4.13.0-1) ...
-#11 16.63 Selecting previously unselected package libz3-dev:amd64.
-#11 16.63 Preparing to unpack .../28-libz3-dev_4.8.12-3.1_amd64.deb ...
-#11 16.63 Unpacking libz3-dev:amd64 (4.8.12-3.1) ...
-#11 16.73 Selecting previously unselected package llvm-14-runtime.
-#11 16.73 Preparing to unpack .../29-llvm-14-runtime_1%3a14.0.6-12_amd64.deb ...
-#11 16.73 Unpacking llvm-14-runtime (1:14.0.6-12) ...
-#11 16.84 Selecting previously unselected package llvm-14.
-#11 16.84 Preparing to unpack .../30-llvm-14_1%3a14.0.6-12_amd64.deb ...
-#11 16.84 Unpacking llvm-14 (1:14.0.6-12) ...
-#11 17.30 Selecting previously unselected package python3-pkg-resources.
-#11 17.31 Preparing to unpack .../31-python3-pkg-resources_66.1.1-1+deb12u2_all.deb ...
-#11 17.31 Unpacking python3-pkg-resources (66.1.1-1+deb12u2) ...
-#11 17.41 Selecting previously unselected package python3-pygments.
-#11 17.41 Preparing to unpack .../32-python3-pygments_2.14.0+dfsg-1_all.deb ...
-#11 17.41 Unpacking python3-pygments (2.14.0+dfsg-1) ...
-#11 17.54 Selecting previously unselected package python3-yaml.
-#11 17.54 Preparing to unpack .../33-python3-yaml_6.0-3+b2_amd64.deb ...
-#11 17.54 Unpacking python3-yaml (6.0-3+b2) ...
-#11 17.63 Selecting previously unselected package llvm-14-tools.
-#11 17.63 Preparing to unpack .../34-llvm-14-tools_1%3a14.0.6-12_amd64.deb ...
-#11 17.63 Unpacking llvm-14-tools (1:14.0.6-12) ...
-#11 17.75 Selecting previously unselected package llvm-14-dev.
-#11 17.75 Preparing to unpack .../35-llvm-14-dev_1%3a14.0.6-12_amd64.deb ...
-#11 17.75 Unpacking llvm-14-dev (1:14.0.6-12) ...
-#11 18.58 Setting up python3-pkg-resources (66.1.1-1+deb12u2) ...
-#11 ...
-
-#10 [stage-1 2/4] RUN apt-get update && apt-get install -y     ca-certificates     && rm -rf /var/lib/apt/lists/*
-#10 29.52 0 added, 0 removed; done.
-#10 29.52 Running hooks in /etc/ca-certificates/update.d...
-#10 29.53 done.
-#10 DONE 30.7s
-
-#12 [stage-1 3/4] WORKDIR /app
-#12 DONE 0.0s
-
-#11 [builder 2/9] RUN apt-get update && apt-get install -y     clang     libclang-dev     && rm -rf /var/lib/apt/lists/*
-#11 19.99 Setting up libpipeline1:amd64 (1.5.7-1) ...
-#11 20.01 Setting up python3-yaml (6.0-3+b2) ...
-#11 20.40 Setting up libcurl3-gnutls:amd64 (7.88.1-10+deb12u14) ...
-#11 20.40 Setting up python3-pygments (2.14.0+dfsg-1) ...
-#11 21.04 Setting up libz3-4:amd64 (4.8.12-3.1) ...
-#11 21.05 Setting up libpfm4:amd64 (4.13.0-1) ...
-#11 21.05 Setting up libnspr4:amd64 (2:4.35-1) ...
-#11 21.05 Setting up binfmt-support (2.2.2-2) ...
-#11 21.17 invoke-rc.d: could not determine current runlevel
-#11 21.21 invoke-rc.d: policy-rc.d denied execution of start.
-#11 21.52 Setting up libgc1:amd64 (1:8.2.2-3) ...
-#11 21.53 Setting up libllvm14:amd64 (1:14.0.6-12) ...
-#11 21.53 Setting up libc6-i386 (2.36-9+deb12u13) ...
-#11 21.54 Setting up libcurl4:amd64 (7.88.1-10+deb12u14) ...
-#11 21.54 Setting up curl (7.88.1-10+deb12u14) ...
-#11 21.54 Setting up libc-dev-bin (2.36-9+deb12u13) ...
-#11 21.55 Setting up llvm-14-linker-tools (1:14.0.6-12) ...
-#11 21.55 Setting up llvm-14-tools (1:14.0.6-12) ...
-#11 21.55 Setting up libz3-dev:amd64 (4.8.12-3.1) ...
-#11 21.56 Setting up libclang1-14 (1:14.0.6-12) ...
-#11 21.56 Setting up libobjc4:amd64 (12.2.0-14+deb12u1) ...
-#11 21.56 Setting up libnss3:amd64 (2:3.87.1-1+deb12u1) ...
-#11 21.57 Setting up llvm-14-runtime (1:14.0.6-12) ...
-#11 21.59 Setting up lib32gcc-s1 (12.2.0-14+deb12u1) ...
-#11 21.60 Setting up lib32stdc++6 (12.2.0-14+deb12u1) ...
-#11 21.61 Setting up libcurl4-openssl-dev:amd64 (7.88.1-10+deb12u14) ...
-#11 21.62 Setting up libclang-common-14-dev (1:14.0.6-12) ...
-#11 21.62 Setting up libclang-cpp14 (1:14.0.6-12) ...
-#11 21.62 Setting up libobjc-12-dev:amd64 (12.2.0-14+deb12u1) ...
-#11 21.63 Setting up libclang-14-dev (1:14.0.6-12) ...
-#11 21.63 Setting up libc6-dev:amd64 (2.36-9+deb12u13) ...
-#11 21.63 Setting up clang-14 (1:14.0.6-12) ...
-#11 21.64 Setting up libclang-dev (1:14.0-55.7~deb12u1) ...
-#11 21.64 Setting up nss-plugin-pem:amd64 (1.0.8+1-1) ...
-#11 21.64 Setting up libclang-rt-14-dev:amd64 (1:14.0.6-12) ...
-#11 21.65 Setting up clang (1:14.0-55.7~deb12u1) ...
-#11 21.74 Setting up libcurl3-nss:amd64 (7.88.1-10+deb12u14) ...
-#11 21.74 Setting up llvm-14 (1:14.0.6-12) ...
-#11 21.74 Setting up llvm-14-dev (1:14.0.6-12) ...
-#11 21.75 Processing triggers for libc-bin (2.36-9+deb12u13) ...
-#11 DONE 21.8s
-
-#13 [builder 3/9] WORKDIR /build
-#13 DONE 0.0s
-
-#14 [builder 4/9] COPY Cargo.toml Cargo.lock ./
-#14 DONE 0.0s
-
-#15 [builder 5/9] COPY app/Cargo.toml ./app/
-#15 DONE 0.0s
-
-#16 [builder 6/9] RUN mkdir -p app/src && echo "fn main() {}" > app/src/main.rs
-#16 DONE 0.1s
-
-#17 [builder 7/9] RUN cargo build --release && rm -rf app/src
-#17 0.292 error: failed to load manifest for workspace member `/build/app`
-#17 0.292 referenced by workspace at `/build/Cargo.toml`
-#17 0.292 
-#17 0.292 Caused by:
-#17 0.293   failed to load manifest for dependency `light-client`
-#17 0.293 
-#17 0.293 Caused by:
-#17 0.293   failed to read `/build/light-client/Cargo.toml`
-#17 0.293 
-#17 0.293 Caused by:
-#17 0.293   No such file or directory (os error 2)
-#17 ERROR: process "/bin/sh -c cargo build --release && rm -rf app/src" did not complete successfully: exit code: 101
-------
- > [builder 7/9] RUN cargo build --release && rm -rf app/src:
-0.292 referenced by workspace at `/build/Cargo.toml`
-0.292 
-0.292 Caused by:
-0.293   failed to load manifest for dependency `light-client`
-0.293 
-0.293 Caused by:
-0.293   failed to read `/build/light-client/Cargo.toml`
-0.293 
-0.293 Caused by:
-0.293   No such file or directory (os error 2)
-------
-Dockerfile:22
---------------------
-  20 |     
-  21 |     # Build dependencies (this layer will be cached)
-  22 | >>> RUN cargo build --release && rm -rf app/src
-  23 |     
-  24 |     # Copy actual source code
---------------------
-ERROR: failed to build: failed to solve: process "/bin/sh -c cargo build --release && rm -rf app/src" did not complete successfully: exit code: 101
-
-View build details: docker-desktop://dashboard/build/desktop-linux/desktop-linux/ig7ryud0sjiikhxr1qgatmjgb
