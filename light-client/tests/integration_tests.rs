@@ -51,6 +51,7 @@ async fn test_compute_evolve_state_root() {
     config.rpc.evnode_rpc = "http://178.199.12.26:26658".to_string();
     config.rpc.evreth_rpc = "http://178.199.12.26:8545".to_string();
     config.rpc.evreth_ws = "ws://178.199.12.26:8546".to_string();
+    config.pub_key = "164c3b7a8a505aa433fe5ccf1a27853b77edcac4abe79299ef1b02f705642f54".to_string();
 
     let chain_context = ChainContext::from_config(config, Arc::new(ism_client))
         .await
@@ -371,6 +372,7 @@ async fn test_batch_prefetch_preserves_order() {
     config.rpc.evnode_rpc = "http://178.199.12.26:26658".to_string();
     config.rpc.evreth_rpc = "http://178.199.12.26:8545".to_string();
     config.rpc.evreth_ws = "ws://178.199.12.26:8546".to_string();
+    config.pub_key = "164c3b7a8a505aa433fe5ccf1a27853b77edcac4abe79299ef1b02f705642f54".to_string();
 
     let chain_context = ChainContext::from_config(config, Arc::new(ism_client))
         .await

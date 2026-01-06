@@ -208,8 +208,21 @@ pub async fn build_block_input_from_prefetched(
             Ok(data) => data,
             Err(_) => continue,
         };
+
+        // Debug: print signer from signed blob
+        if let Some(signer) = &signed_data.signer {
+            println!(
+                "Blob signer: {:?}\nExpected pubkey: {}",
+                hex::encode(&signer.pub_key),
+                hex::encode(chain_context.pub_key_bytes())
+            );
+        }
+
         let data = signed_data.data.ok_or_else(|| anyhow!("Data not found"))?;
-        let height = data.metadata.ok_or_else(|| anyhow!("Metadata not found"))?.height;
+        let height = data
+            .metadata
+            .ok_or_else(|| anyhow!("Metadata not found"))?
+            .height;
         last_height = height;
 
         let client_executor_input = generate_executor_input(
