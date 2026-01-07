@@ -20,7 +20,6 @@ use sp1_sdk::include_elf;
 use tendermint_light_client_verifier::types::{LightBlock, SignedHeader};
 use tendermint_rpc::{Client as TendermintClient, HttpClient as TendermintHttpClient};
 
-const MAX_CONCURRENCY: usize = 10;
 
 pub type DefaultProvider = FillProvider<
     alloy_provider::fillers::JoinFill<
@@ -92,14 +91,13 @@ pub async fn prefetch_celestia_data(
 
 /// Batch prefetch Celestia data for a range of heights.
 /// Uses header_get_range_by_height to fetch all headers in one request,
-/// then fetches blobs and proofs in parallel.
+/// then fetches blobs and proofs sequentially.
 /// This reduces the number of RPC calls from 3N to 2N+1 (1 header range + N blobs + N proofs).
 pub async fn prefetch_celestia_data_batch(
     chain_context: Arc<ChainContext>,
     from_height: u64,
     to_height: u64,
 ) -> Result<Vec<PrefetchedCelestiaData>> {
-    use futures::stream::{StreamExt, TryStreamExt};
 
     let num_blocks = to_height - from_height + 1;
     let prefetch_start = std::time::Instant::now();
@@ -141,45 +139,38 @@ pub async fn prefetch_celestia_data_batch(
         .map(|h| (h.height().value(), h))
         .collect();
 
-    // Fetch blobs and proofs with limited concurrency (100 parallel requests at a time)
-    // Using `buffered` instead of `buffer_unordered` to preserve order
+    // Fetch blobs and proofs sequentially
     let blobs_start = std::time::Instant::now();
     let heights: Vec<u64> = (from_height..=to_height).collect();
-    let prefetched: Vec<PrefetchedCelestiaData> = futures::stream::iter(heights)
-        .map(|height| {
-            let ctx = chain_context.clone();
-            let header = header_map.get(&height).cloned();
-            async move {
-                let header =
-                    header.ok_or_else(|| anyhow!("Header not found for height {}", height))?;
-                let namespace = ctx.namespace();
+    let mut prefetched: Vec<PrefetchedCelestiaData> = Vec::new();
 
-                // Fetch blobs
-                let blobs: Vec<Blob> = ctx
-                    .celestia_client()
-                    .blob_get_all(height, &[namespace])
-                    .await?
-                    .unwrap_or_default();
+    for height in heights {
+        let header = header_map.get(&height).cloned()
+            .ok_or_else(|| anyhow!("Header not found for height {}", height))?;
+        let namespace = chain_context.namespace();
 
-                // Fetch namespace data for proofs
-                let namespace_data = ctx
-                    .celestia_client()
-                    .share_get_namespace_data(&header, namespace)
-                    .await?;
-                let proofs: Vec<NamespaceProof> =
-                    namespace_data.rows.into_iter().map(|r| r.proof).collect();
+        // Fetch blobs
+        let blobs: Vec<Blob> = chain_context
+            .celestia_client()
+            .blob_get_all(height, &[namespace])
+            .await?
+            .unwrap_or_default();
 
-                Ok::<_, anyhow::Error>(PrefetchedCelestiaData {
-                    height,
-                    blobs,
-                    extended_header: header,
-                    proofs,
-                })
-            }
-        })
-        .buffered(MAX_CONCURRENCY)
-        .try_collect()
-        .await?;
+        // Fetch namespace data for proofs
+        let namespace_data = chain_context
+            .celestia_client()
+            .share_get_namespace_data(&header, namespace)
+            .await?;
+        let proofs: Vec<NamespaceProof> =
+            namespace_data.rows.into_iter().map(|r| r.proof).collect();
+
+        prefetched.push(PrefetchedCelestiaData {
+            height,
+            blobs,
+            extended_header: header,
+            proofs,
+        });
+    }
     let blobs_duration = blobs_start.elapsed();
     println!(
         "  Blobs and proofs fetched in {:.2}s ({} blocks, {:.2}ms per block)",
@@ -234,7 +225,6 @@ pub async fn build_block_input_from_prefetched(
 
     // Process blobs to extract executor inputs
     // Match the reference implementation logic exactly
-    use futures::stream::{StreamExt, TryStreamExt};
 
     // First pass: extract heights from blobs
     let mut heights_to_fetch = Vec::new();
@@ -254,21 +244,19 @@ pub async fn build_block_input_from_prefetched(
 
     let last_height = heights_to_fetch.last().copied().unwrap_or(0);
 
-    // Second pass: fetch executor inputs in parallel with controlled concurrency
+    // Second pass: fetch executor inputs sequentially
     let executor_start = std::time::Instant::now();
-    let results: Vec<(EthClientExecutorInput, std::time::Duration)> = futures::stream::iter(heights_to_fetch)
-        .map(|height| {
-            let chain_spec = chain_context.chain_spec();
-            let genesis = chain_context.genesis();
-            let provider = chain_context.evm_provider();
-            async move { generate_executor_input(chain_spec, genesis, provider, height).await }
-        })
-        .buffered(MAX_CONCURRENCY)
-        .try_collect()
-        .await?;
-    let executor_wall_time = executor_start.elapsed();
+    let mut executor_inputs: Vec<EthClientExecutorInput> = Vec::new();
 
-    let executor_inputs: Vec<EthClientExecutorInput> = results.into_iter().map(|(input, _)| input).collect();
+    for height in heights_to_fetch {
+        let chain_spec = chain_context.chain_spec();
+        let genesis = chain_context.genesis();
+        let provider = chain_context.evm_provider();
+        let (input, _) = generate_executor_input(chain_spec, genesis, provider, height).await?;
+        executor_inputs.push(input);
+    }
+
+    let executor_wall_time = executor_start.elapsed();
 
     // Construct the block execution input
     let input = BlockExecInput {
