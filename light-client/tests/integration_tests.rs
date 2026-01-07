@@ -9,8 +9,8 @@ use dstack_verifier::Attestation;
 use ev_prover::{config::Config, prover::chain::ChainContext};
 use ev_zkevm_types::programs::block::State;
 use light_client::{
-    fetch_block_inputs_from_middleware, get_light_block, prefetch_celestia_data_batch,
-    verify_blocks, CIRCUIT_ELF,
+    CIRCUIT_ELF, fetch_block_inputs_from_middleware, get_light_block, prefetch_celestia_data_batch,
+    verify_blocks,
 };
 use serde::Deserialize;
 use sp1_sdk::{ProverClient, SP1Stdin};
@@ -100,10 +100,7 @@ async fn test_compute_evolve_state_root() {
     .expect("Failed to fetch block inputs from middleware");
 
     if let Some(timing) = middleware_timing {
-        println!(
-            "Middleware timing: prefetch={:.2}s, executor={:.2}s, total={:.2}s",
-            timing.prefetch_seconds, timing.executor_inputs_seconds, timing.total_seconds
-        );
+        println!("Middleware timing: total={:.2}s", timing.total_time_seconds);
     }
 
     // get light blocks

@@ -180,7 +180,7 @@ async fn get_attestation() -> Json<Value> {
     let trusted_root_hex = hex::encode(trusted_root.as_slice());
 
     let fetch_start = std::time::Instant::now();
-    let (block_inputs, middleware_timing) = match fetch_block_inputs_from_middleware(
+    let (block_inputs, _) = match fetch_block_inputs_from_middleware(
         &middleware_url,
         trusted_celestia_height + 1,
         celestia_head,
@@ -203,12 +203,6 @@ async fn get_attestation() -> Json<Value> {
         num_blocks,
         fetch_duration.as_millis() as f64 / num_blocks as f64
     );
-    if let Some(ref timing) = middleware_timing {
-        println!(
-            "  Middleware timing: prefetch={:.2}s, host_executor={:.2}s, executor_inputs={:.2}s",
-            timing.prefetch_seconds, timing.host_executor_seconds, timing.executor_inputs_seconds
-        );
-    }
 
     // Step 7: Get light blocks
     println!("Step 7: Getting light blocks...");
@@ -260,7 +254,7 @@ async fn get_attestation() -> Json<Value> {
         }
     };
 
-    let mut response = json!({
+    let response = json!({
         "success": true,
         "quote": result.quote,
         "event_log": result.event_log,
@@ -270,16 +264,6 @@ async fn get_attestation() -> Json<Value> {
             "verify_blocks_seconds": verify_duration.as_secs_f64(),
         }
     });
-
-    // Add middleware timing if available
-    if let Some(timing) = middleware_timing {
-        response["timing"]["middleware"] = json!({
-            "prefetch_seconds": timing.prefetch_seconds,
-            "host_executor_seconds": timing.host_executor_seconds,
-            "executor_inputs_seconds": timing.executor_inputs_seconds,
-            "total_seconds": timing.total_seconds,
-        });
-    }
 
     Json(response)
 }
