@@ -114,10 +114,11 @@ async fn fetch_block_inputs(params: QueryBlockInputsParams) -> Result<(Vec<Block
     let prefetch_duration = prefetch_start.elapsed();
 
     // Process sequentially to handle trusted state updates (includes executor input generation)
+    let executor_inputs_start = std::time::Instant::now();
     let mut block_inputs = Vec::new();
-    let mut total_host_executor_time = std::time::Duration::ZERO;
+    let mut total_host_executor_wall_time = std::time::Duration::ZERO;
     for prefetched_data in prefetched {
-        let (input, executor_time) = build_block_input_from_prefetched(
+        let (input, executor_wall_time) = build_block_input_from_prefetched(
             chain_context.clone(),
             prefetched_data,
             &mut trusted_height,
@@ -125,15 +126,16 @@ async fn fetch_block_inputs(params: QueryBlockInputsParams) -> Result<(Vec<Block
         )
         .await?;
         block_inputs.push(input);
-        total_host_executor_time += executor_time;
+        total_host_executor_wall_time += executor_wall_time;
     }
+    let executor_inputs_duration = executor_inputs_start.elapsed();
 
     let total_duration = total_start.elapsed();
 
     let timing = TimingInfo {
         prefetch_seconds: prefetch_duration.as_secs_f64(),
-        host_executor_seconds: total_host_executor_time.as_secs_f64(),
-        executor_inputs_seconds: (total_duration - prefetch_duration).as_secs_f64(),
+        host_executor_seconds: total_host_executor_wall_time.as_secs_f64(),
+        executor_inputs_seconds: executor_inputs_duration.as_secs_f64(),
         total_seconds: total_duration.as_secs_f64(),
     };
 

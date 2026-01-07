@@ -1,7 +1,7 @@
 # Evolve-TEE Project Context
 
 ## Project Overview
-Zero-Knowledge Proofs (ZKPs) of TEE Attestations for blockchain state verification. Verifies block execution using TEE attestations from Trusted Execution Environments (SGX/TDX) and provides cryptographic proofs that a sequence of blocks have been correctly executed.
+Zero-Knowledge Proofs (ZKPs) of TEE Attestations for blockchain state verification. Verifies block execution using TEE attestations from Trusted Execution Environments (SGX/TDX) and provides an attestation over verified evolve state that can be wrapped in a zk circuit.
 
 **Tech Stack:** Rust, SP1 ZK proving, TEE (Phala/DStack), Celestia DA, EVM execution
 
