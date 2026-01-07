@@ -398,7 +398,6 @@ struct QueryBlockInputsResponse {
 #[derive(Deserialize, Clone, Debug)]
 pub struct MiddlewareTiming {
     pub total_time_seconds: f64,
-    pub raw_execution_seconds: f64,
 }
 
 /// Fetches block inputs from the middleware service.

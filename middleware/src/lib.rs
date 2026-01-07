@@ -29,7 +29,6 @@ pub struct QueryBlockInputsResponse {
 #[derive(Debug, Serialize)]
 pub struct TimingInfo {
     pub total_time_seconds: f64,
-    pub raw_execution_seconds: f64,
 }
 
 pub fn create_router() -> Router {
@@ -124,12 +123,8 @@ async fn fetch_block_inputs(params: QueryBlockInputsParams) -> Result<(Vec<Block
 
     let total_duration = total_start.elapsed();
 
-    // Note: We cannot accurately separate "raw execution time" from "RPC fetch time"
-    // because RpcDb fetches state on-demand during execution. They are interleaved.
-    // For now, total_time includes everything (Celestia fetch + RPC fetch + execution)
     let timing = TimingInfo {
         total_time_seconds: total_duration.as_secs_f64(),
-        raw_execution_seconds: 0.0, // Cannot measure separately without modifying RSP
     };
 
     println!(
