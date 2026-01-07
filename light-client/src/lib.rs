@@ -248,11 +248,13 @@ pub async fn build_block_input_from_prefetched(
     let executor_start = std::time::Instant::now();
     let mut executor_inputs: Vec<EthClientExecutorInput> = Vec::new();
 
+    // Reuse these across all heights to avoid creating new connections
+    let chain_spec = chain_context.chain_spec();
+    let genesis = chain_context.genesis();
+    let provider = chain_context.evm_provider();
+
     for height in heights_to_fetch {
-        let chain_spec = chain_context.chain_spec();
-        let genesis = chain_context.genesis();
-        let provider = chain_context.evm_provider();
-        let (input, _) = generate_executor_input(chain_spec, genesis, provider, height).await?;
+        let (input, _) = generate_executor_input(chain_spec.clone(), genesis.clone(), provider.clone(), height).await?;
         executor_inputs.push(input);
     }
 
