@@ -344,4 +344,3 @@ fn test_verify_attestation_sp1_proof() {
     )
     .expect("Failed to verify Groth16 proof from fixture");
 }
-

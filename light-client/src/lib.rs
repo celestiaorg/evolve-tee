@@ -90,10 +90,8 @@ pub async fn build_block_input(
     let mut executor_inputs: Vec<EthClientExecutorInput> = Vec::new();
     let mut last_height = 0;
     for blob in blobs.as_slice() {
-        let signed_data = match SignedData::decode(blob.data.as_slice()) {
-            Ok(data) => data,
-            Err(_) => continue,
-        };
+        let signed_data = SignedData::decode(blob.data.as_slice())
+            .map_err(|e| anyhow!("Failed to decode blob data: {}", e))?;
         let data = signed_data.data.ok_or_else(|| anyhow!("Data not found"))?;
         let height = data
             .metadata
