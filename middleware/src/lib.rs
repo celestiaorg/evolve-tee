@@ -115,6 +115,9 @@ async fn fetch_block_inputs(
         )
         .await?;
         block_inputs.push(input);
+
+        // Small delay to avoid RPC rate limiting
+        tokio::time::sleep(tokio::time::Duration::from_millis(100)).await;
     }
 
     let total_duration = total_start.elapsed();
