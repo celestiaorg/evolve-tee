@@ -29,6 +29,7 @@ pub struct QueryBlockInputsResponse {
 #[derive(Debug, Serialize)]
 pub struct TimingInfo {
     pub prefetch_seconds: f64,
+    pub host_executor_seconds: f64,
     pub executor_inputs_seconds: f64,
     pub total_seconds: f64,
 }
@@ -113,10 +114,10 @@ async fn fetch_block_inputs(params: QueryBlockInputsParams) -> Result<(Vec<Block
     let prefetch_duration = prefetch_start.elapsed();
 
     // Process sequentially to handle trusted state updates (includes executor input generation)
-    let executor_start = std::time::Instant::now();
     let mut block_inputs = Vec::new();
+    let mut total_host_executor_time = std::time::Duration::ZERO;
     for prefetched_data in prefetched {
-        let input = build_block_input_from_prefetched(
+        let (input, executor_time) = build_block_input_from_prefetched(
             chain_context.clone(),
             prefetched_data,
             &mut trusted_height,
@@ -124,20 +125,21 @@ async fn fetch_block_inputs(params: QueryBlockInputsParams) -> Result<(Vec<Block
         )
         .await?;
         block_inputs.push(input);
+        total_host_executor_time += executor_time;
     }
-    let executor_duration = executor_start.elapsed();
 
     let total_duration = total_start.elapsed();
 
     let timing = TimingInfo {
         prefetch_seconds: prefetch_duration.as_secs_f64(),
-        executor_inputs_seconds: executor_duration.as_secs_f64(),
+        host_executor_seconds: total_host_executor_time.as_secs_f64(),
+        executor_inputs_seconds: (total_duration - prefetch_duration).as_secs_f64(),
         total_seconds: total_duration.as_secs_f64(),
     };
 
     println!(
-        "Timing report: prefetch={:.2}s, executor_inputs={:.2}s, total={:.2}s",
-        timing.prefetch_seconds, timing.executor_inputs_seconds, timing.total_seconds
+        "Timing report: prefetch={:.2}s, host_executor={:.2}s, executor_inputs={:.2}s, total={:.2}s",
+        timing.prefetch_seconds, timing.host_executor_seconds, timing.executor_inputs_seconds, timing.total_seconds
     );
 
     Ok((block_inputs, timing))

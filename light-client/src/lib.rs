@@ -200,12 +200,13 @@ pub async fn prefetch_celestia_data_batch(
 
 /// Build block input from prefetched Celestia data. This handles the sequential
 /// trusted state updates and must be called in order.
+/// Returns (BlockExecInput, executor_duration) where executor_duration is the time spent in host executor.
 pub async fn build_block_input_from_prefetched(
     chain_context: Arc<ChainContext>,
     prefetched: PrefetchedCelestiaData,
     trusted_height: &mut u64,
     trusted_root: &mut FixedBytes<32>,
-) -> Result<BlockExecInput> {
+) -> Result<(BlockExecInput, std::time::Duration)> {
     #[allow(unused_variables)]
     let PrefetchedCelestiaData {
         height: _,
@@ -215,17 +216,20 @@ pub async fn build_block_input_from_prefetched(
     } = prefetched;
 
     if blobs.is_empty() {
-        return Ok(BlockExecInput {
-            header_raw: serde_cbor::to_vec(&extended_header.header)?,
-            dah: extended_header.dah,
-            blobs_raw: serde_cbor::to_vec(&blobs)?,
-            pub_key: chain_context.pub_key_bytes(),
-            namespace: chain_context.namespace(),
-            proofs,
-            executor_inputs: vec![],
-            trusted_height: *trusted_height,
-            trusted_root: *trusted_root,
-        });
+        return Ok((
+            BlockExecInput {
+                header_raw: serde_cbor::to_vec(&extended_header.header)?,
+                dah: extended_header.dah,
+                blobs_raw: serde_cbor::to_vec(&blobs)?,
+                pub_key: chain_context.pub_key_bytes(),
+                namespace: chain_context.namespace(),
+                proofs,
+                executor_inputs: vec![],
+                trusted_height: *trusted_height,
+                trusted_root: *trusted_root,
+            },
+            std::time::Duration::ZERO,
+        ));
     }
 
     // Process blobs to extract executor inputs
@@ -251,7 +255,7 @@ pub async fn build_block_input_from_prefetched(
     let last_height = heights_to_fetch.last().copied().unwrap_or(0);
 
     // Second pass: fetch executor inputs in parallel with controlled concurrency
-    let executor_inputs: Vec<EthClientExecutorInput> = futures::stream::iter(heights_to_fetch)
+    let results: Vec<(EthClientExecutorInput, std::time::Duration)> = futures::stream::iter(heights_to_fetch)
         .map(|height| {
             let chain_spec = chain_context.chain_spec();
             let genesis = chain_context.genesis();
@@ -261,6 +265,9 @@ pub async fn build_block_input_from_prefetched(
         .buffered(MAX_CONCURRENCY)
         .try_collect()
         .await?;
+
+    let total_executor_time: std::time::Duration = results.iter().map(|(_, d)| *d).sum();
+    let executor_inputs: Vec<EthClientExecutorInput> = results.into_iter().map(|(input, _)| input).collect();
 
     // Construct the block execution input
     let input = BlockExecInput {
@@ -288,7 +295,7 @@ pub async fn build_block_input_from_prefetched(
         *trusted_root = block.header.state_root;
     }
 
-    Ok(input)
+    Ok((input, total_executor_time))
 }
 
 async fn generate_executor_input(
@@ -296,15 +303,17 @@ async fn generate_executor_input(
     genesis: Genesis,
     provider: DefaultProvider,
     block_number: u64,
-) -> Result<EthClientExecutorInput> {
+) -> Result<(EthClientExecutorInput, std::time::Duration)> {
     let host_executor = EthHostExecutor::eth(chain_spec, None);
     let rpc_db = RpcDb::new(provider.clone(), block_number.saturating_sub(1));
 
+    let exec_start = std::time::Instant::now();
     let executor_input = host_executor
         .execute(block_number, &rpc_db, &provider, genesis, None, false)
         .await?;
+    let exec_duration = exec_start.elapsed();
 
-    Ok(executor_input)
+    Ok((executor_input, exec_duration))
 }
 
 /// Fetches a Tendermint LightBlock at the given height.
@@ -387,6 +396,7 @@ struct QueryBlockInputsResponse {
 #[derive(Deserialize, Clone, Debug)]
 pub struct MiddlewareTiming {
     pub prefetch_seconds: f64,
+    pub host_executor_seconds: f64,
     pub executor_inputs_seconds: f64,
     pub total_seconds: f64,
 }

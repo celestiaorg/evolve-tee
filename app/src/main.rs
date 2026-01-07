@@ -7,7 +7,7 @@ use celestia_grpc_client::{types::ClientConfig, CelestiaIsmClient, QueryIsmReque
 use celestia_rpc::HeaderClient;
 use dstack_sdk::dstack_client::DstackClient;
 use ev_prover::{config::Config, prover::chain::ChainContext};
-use ev_zkevm_types::programs::block::{BlockExecInput, State};
+use ev_zkevm_types::programs::block::State;
 use light_client::{fetch_block_inputs_from_middleware, get_light_block, verify_blocks};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
@@ -205,8 +205,8 @@ async fn get_attestation() -> Json<Value> {
     );
     if let Some(ref timing) = middleware_timing {
         println!(
-            "  Middleware timing: prefetch={:.2}s, executor_inputs={:.2}s",
-            timing.prefetch_seconds, timing.executor_inputs_seconds
+            "  Middleware timing: prefetch={:.2}s, host_executor={:.2}s, executor_inputs={:.2}s",
+            timing.prefetch_seconds, timing.host_executor_seconds, timing.executor_inputs_seconds
         );
     }
 
@@ -275,6 +275,7 @@ async fn get_attestation() -> Json<Value> {
     if let Some(timing) = middleware_timing {
         response["timing"]["middleware"] = json!({
             "prefetch_seconds": timing.prefetch_seconds,
+            "host_executor_seconds": timing.host_executor_seconds,
             "executor_inputs_seconds": timing.executor_inputs_seconds,
             "total_seconds": timing.total_seconds,
         });
