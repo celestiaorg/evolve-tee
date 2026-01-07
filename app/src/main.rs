@@ -91,6 +91,8 @@ async fn get_attestation() -> Json<Value> {
     config.rpc.evnode_rpc = evnode_rpc_url;
     config.rpc.evreth_rpc = evreth_rpc_url;
     config.rpc.evreth_ws = evreth_ws_url;
+    config.pub_key = "3964a68700cf76e215626e076e76d23bd1f4c3b31184b5822fd7b4df15d5ce9a".to_string();
+
     let chain_context = match ChainContext::from_config(config, Arc::new(ism_client)).await {
         Ok(c) => c,
         Err(e) => {

@@ -100,6 +100,10 @@ pub async fn prefetch_celestia_data_batch(
 ) -> Result<Vec<PrefetchedCelestiaData>> {
     use futures::stream::{StreamExt, TryStreamExt};
 
+    println!(
+        "Prefetching Celestia data from height {} to {}",
+        from_height, to_height
+    );
     // First, get the starting header
     let from_header = chain_context
         .celestia_client()
@@ -209,14 +213,14 @@ pub async fn build_block_input_from_prefetched(
             Err(_) => continue,
         };
 
-        // Debug: print signer from signed blob
+        /*// Debug: print signer from signed blob
         if let Some(signer) = &signed_data.signer {
             println!(
                 "Blob signer: {:?}\nExpected pubkey: {}",
                 hex::encode(&signer.pub_key),
                 hex::encode(chain_context.pub_key_bytes())
             );
-        }
+        }*/
 
         let data = signed_data.data.ok_or_else(|| anyhow!("Data not found"))?;
         let height = data
