@@ -20,7 +20,7 @@ use sp1_sdk::include_elf;
 use tendermint_light_client_verifier::types::{LightBlock, SignedHeader};
 use tendermint_rpc::{Client as TendermintClient, HttpClient as TendermintHttpClient};
 
-const MAX_CONCURRENCY: usize = 500;
+const MAX_CONCURRENCY: usize = 10;
 
 pub type DefaultProvider = FillProvider<
     alloy_provider::fillers::JoinFill<
