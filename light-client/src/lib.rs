@@ -268,19 +268,7 @@ pub async fn build_block_input_from_prefetched(
         .await?;
     let executor_wall_time = executor_start.elapsed();
 
-    let total_executor_time: std::time::Duration = results.iter().map(|(_, d)| *d).sum();
     let executor_inputs: Vec<EthClientExecutorInput> = results.into_iter().map(|(input, _)| input).collect();
-
-    // Log both wall time and cumulative time for debugging
-    if !executor_inputs.is_empty() {
-        println!(
-            "  Executor: wall_time={:.2}s, cumulative_time={:.2}s, parallelism={:.1}x ({} blocks)",
-            executor_wall_time.as_secs_f64(),
-            total_executor_time.as_secs_f64(),
-            total_executor_time.as_secs_f64() / executor_wall_time.as_secs_f64().max(0.001),
-            executor_inputs.len()
-        );
-    }
 
     // Construct the block execution input
     let input = BlockExecInput {
