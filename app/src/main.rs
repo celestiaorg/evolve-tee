@@ -7,15 +7,69 @@ use celestia_grpc_client::{types::ClientConfig, CelestiaIsmClient, QueryIsmReque
 use celestia_rpc::HeaderClient;
 use dstack_sdk::dstack_client::DstackClient;
 use ev_prover::{config::Config, prover::chain::ChainContext};
-use ev_zkevm_types::programs::block::State;
-use light_client::{
-    build_block_input_from_prefetched, get_light_block, prefetch_celestia_data_batch, verify_blocks,
-};
+use ev_zkevm_types::programs::block::{BlockExecInput, State};
+use light_client::{get_light_block, verify_blocks};
+use serde::Deserialize;
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use tendermint_rpc::HttpClient as TendermintHttpClient;
 
 const MAX_BLOCKS: u64 = 1000;
+
+#[derive(Debug, Deserialize)]
+struct QueryBlockInputsResponse {
+    success: bool,
+    block_inputs: Option<Vec<String>>,
+    error: Option<String>,
+}
+
+async fn fetch_block_inputs_from_middleware(
+    middleware_url: &str,
+    from_height: u64,
+    to_height: u64,
+    trusted_height: u64,
+    trusted_root: &str,
+) -> anyhow::Result<Vec<BlockExecInput>> {
+    let url = format!(
+        "{}/query_block_inputs?from_height={}&to_height={}&trusted_height={}&trusted_root={}",
+        middleware_url, from_height, to_height, trusted_height, trusted_root
+    );
+
+    let client = reqwest::Client::new();
+    let response: QueryBlockInputsResponse = client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| anyhow!("Failed to send request to middleware: {}", e))?
+        .json()
+        .await
+        .map_err(|e| anyhow!("Failed to parse middleware response: {}", e))?;
+
+    if !response.success {
+        return Err(anyhow!(
+            "Middleware returned error: {}",
+            response
+                .error
+                .unwrap_or_else(|| "Unknown error".to_string())
+        ));
+    }
+
+    let block_inputs_hex = response
+        .block_inputs
+        .ok_or_else(|| anyhow!("No block inputs in response"))?;
+
+    // Deserialize block inputs from hex
+    let mut block_inputs = Vec::new();
+    for hex_str in block_inputs_hex {
+        let bytes = hex::decode(&hex_str)
+            .map_err(|e| anyhow!("Failed to decode block input hex: {}", e))?;
+        let input: BlockExecInput = bincode::deserialize(&bytes)
+            .map_err(|e| anyhow!("Failed to deserialize block input: {}", e))?;
+        block_inputs.push(input);
+    }
+
+    Ok(block_inputs)
+}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -142,8 +196,8 @@ async fn get_attestation() -> Json<Value> {
     // Step 5: Get Celestia head
     println!("Step 5: Getting Celestia head...");
     let trusted_celestia_height = state.celestia_height;
-    let mut trusted_height = state.height;
-    let mut trusted_root = FixedBytes::from_slice(&state.state_root);
+    let trusted_height = state.height;
+    let trusted_root: FixedBytes<32> = FixedBytes::from_slice(&state.state_root);
     let celestia_head_raw = match chain_context.celestia_client().header_local_head().await {
         Ok(h) => h.height().value(),
         Err(e) => {
@@ -161,51 +215,42 @@ async fn get_attestation() -> Json<Value> {
         );
     }
 
-    // Step 6: Build block inputs
+    // Step 6: Fetch block inputs from middleware (single network call from TEE)
     let num_blocks = celestia_head - trusted_celestia_height;
     println!(
-        "Step 6: Building block inputs from {} to {} ({} blocks)...",
+        "Step 6: Fetching block inputs from middleware for {} to {} ({} blocks)...",
         trusted_celestia_height + 1,
         celestia_head,
         num_blocks
     );
 
-    // Batch prefetch all Celestia data (uses header_get_range_by_height for efficiency)
-    let prefetched = match prefetch_celestia_data_batch(
-        chain_context.clone(),
-        trusted_celestia_height + 1,
-        celestia_head,
-    )
-    .await
-    {
-        Ok(results) => results,
-        Err(e) => {
+    let middleware_url = match std::env::var("MIDDLEWARE_ENDPOINT") {
+        Ok(url) => url,
+        Err(_) => {
             return Json(
-                json!({"error": format!("Failed to prefetch Celestia data: {}", e), "step": 6}),
+                json!({"error": "MIDDLEWARE_ENDPOINT environment variable not set", "step": 6}),
             )
         }
     };
 
-    // Process sequentially to handle trusted state updates
-    let mut block_inputs = Vec::new();
-    for prefetched_data in prefetched {
-        let height = prefetched_data.height;
-        match build_block_input_from_prefetched(
-            chain_context.clone(),
-            prefetched_data,
-            &mut trusted_height,
-            &mut trusted_root,
-        )
-        .await
-        {
-            Ok(input) => block_inputs.push(input),
-            Err(e) => {
-                return Json(
-                    json!({"error": format!("Failed to build block input {}: {}", height, e), "step": 6}),
-                )
-            }
+    let trusted_root_hex = hex::encode(trusted_root.as_slice());
+
+    let block_inputs: Vec<BlockExecInput> = match fetch_block_inputs_from_middleware(
+        &middleware_url,
+        trusted_celestia_height + 1,
+        celestia_head,
+        trusted_height,
+        &trusted_root_hex,
+    )
+    .await
+    {
+        Ok(inputs) => inputs,
+        Err(e) => {
+            return Json(
+                json!({"error": format!("Failed to fetch block inputs from middleware: {}", e), "step": 6}),
+            )
         }
-    }
+    };
 
     // Step 7: Get light blocks
     println!("Step 7: Getting light blocks...");

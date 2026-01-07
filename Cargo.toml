@@ -1,5 +1,5 @@
 [workspace]
-members = ["app", "circuit", "light-client", "types"]
+members = ["app", "circuit", "light-client", "middleware", "types"]
 resolver = "2"
 
 [workspace.dependencies]

@@ -1,7 +1,11 @@
 [package]
-name = "evolve-tee"
+name = "middleware"
 version = "0.1.0"
 edition = "2021"
+
+[[bin]]
+name = "middleware"
+path = "src/bin/middleware.rs"
 
 [dependencies]
 alloy.workspace = true
@@ -11,19 +15,12 @@ bincode.workspace = true
 celestia-grpc-client.workspace = true
 celestia-rpc.workspace = true
 dotenvy.workspace = true
-dstack-sdk.workspace = true
-dstack-types.workspace = true
-dstack-verifier.workspace = true
 ev-prover.workspace = true
-futures.workspace = true
 ev-zkevm-types.workspace = true
+futures.workspace = true
 hex.workspace = true
 light-client.workspace = true
-reqwest.workspace = true
-rustls.workspace = true
 serde.workspace = true
-serde_cbor.workspace = true
 serde_json.workspace = true
-sha2.workspace = true
 tendermint-rpc.workspace = true
 tokio.workspace = true

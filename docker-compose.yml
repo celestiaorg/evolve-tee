@@ -20,6 +20,7 @@ services:
       - RETH_WS_URL=ws://178.199.12.26:8546
       - TENDERMINT_RPC_URL=http://178.199.12.26:26657
       - CELESTIA_GRPC_ENDPOINT=http://178.199.12.26:9090
+      - MIDDLEWARE_ENDPOINT=http://178.199.12.26:9091
     ports:
       - "8080:8080"
     volumes:

@@ -3927,7 +3927,9 @@ dependencies = [
  "futures",
  "hex",
  "light-client",
+ "reqwest 0.12.28",
  "rustls 0.23.35",
+ "serde",
  "serde_cbor",
  "serde_json",
  "sha2 0.10.9",
@@ -5783,6 +5785,28 @@ name = "memuse"
 version = "0.2.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3d97bbf43eb4f088f8ca469930cde17fa036207c9a5e02ccc5107c4e8b17c964"
+
+[[package]]
+name = "middleware"
+version = "0.1.0"
+dependencies = [
+ "alloy",
+ "anyhow",
+ "axum 0.8.8",
+ "bincode",
+ "celestia-grpc-client",
+ "celestia-rpc",
+ "dotenvy",
+ "ev-prover",
+ "ev-zkevm-types 0.2.0 (git+https://github.com/celestiaorg/celestia-zkevm/?branch=jonas%2Fcelestia-root-verification)",
+ "futures",
+ "hex",
+ "light-client",
+ "serde",
+ "serde_json",
+ "tendermint-rpc",
+ "tokio",
+]
 
 [[package]]
 name = "miette"
