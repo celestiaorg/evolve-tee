@@ -13,7 +13,7 @@ use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use tendermint_rpc::HttpClient as TendermintHttpClient;
 
-const MAX_BLOCKS: u64 = 1000;
+const MAX_BLOCKS: u64 = 10000;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

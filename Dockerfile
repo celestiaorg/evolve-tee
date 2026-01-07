@@ -25,6 +25,7 @@ COPY Cargo.toml Cargo.lock ./
 COPY app/Cargo.toml ./app/
 COPY circuit/Cargo.toml ./circuit/
 COPY light-client/Cargo.toml ./light-client/
+COPY middleware/Cargo.toml ./middleware/
 COPY types/Cargo.toml ./types/
 
 # Copy build.rs for light-client (needed for sp1-build)
@@ -39,9 +40,10 @@ COPY circuit/src ./circuit/src
 # Copy types source (needed by circuit during SP1 compilation)
 COPY types/src ./types/src
 
-# Create dummy sources for app and light-client to cache dependencies
+# Create dummy sources for app, light-client, and middleware to cache dependencies
 RUN mkdir -p app/src && echo "fn main() {}" > app/src/main.rs && \
-    mkdir -p light-client/src && echo "" > light-client/src/lib.rs
+    mkdir -p light-client/src && echo "" > light-client/src/lib.rs && \
+    mkdir -p middleware/src && echo "fn main() {}" > middleware/src/main.rs
 
 # Build dependencies (this layer will be cached)
 RUN cargo build --release -p evolve-tee && rm -rf app/src light-client/src
