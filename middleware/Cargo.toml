@@ -24,3 +24,4 @@ serde.workspace = true
 serde_json.workspace = true
 tendermint-rpc.workspace = true
 tokio.workspace = true
+rustls.workspace = true

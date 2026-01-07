@@ -9,8 +9,8 @@ use dstack_verifier::Attestation;
 use ev_prover::{config::Config, prover::chain::ChainContext};
 use ev_zkevm_types::programs::block::State;
 use light_client::{
-    CIRCUIT_ELF, build_block_input_from_prefetched, get_light_block, prefetch_celestia_data_batch,
-    verify_blocks,
+    fetch_block_inputs_from_middleware, get_light_block, prefetch_celestia_data_batch,
+    verify_blocks, CIRCUIT_ELF,
 };
 use serde::Deserialize;
 use sp1_sdk::{ProverClient, SP1Stdin};
@@ -28,10 +28,12 @@ struct QuoteReport {
     report_data: String,
 }
 
-/// Tests computing the Evolve state root by building block inputs and running native verification.
+/// Tests computing the Evolve state root using the middleware service.
 ///
-/// This test fetches the current ISM state, builds block inputs from the trusted height
-/// to the current Celestia head, and runs native block verification to compute the new state.
+/// This test fetches the current ISM state, calls the middleware to get pre-built block inputs
+/// from the trusted height to the current Celestia head, and runs native block verification to
+/// compute the new state. The middleware handles all expensive RPC calls (Celestia headers, blobs,
+/// proofs, and EVM data) and returns the inputs in a single HTTP response.
 #[tokio::test(flavor = "multi_thread")]
 async fn test_compute_evolve_state_root() {
     rustls::crypto::aws_lc_rs::default_provider()
@@ -71,11 +73,9 @@ async fn test_compute_evolve_state_root() {
         .unwrap();
     let ism = resp.ism.ok_or_else(|| anyhow!("ZKISM not found")).unwrap();
     let state: State = bincode::deserialize(&ism.state).unwrap();
-    // get inputs, pass trusted state to circuit, output new (mutated) state, ::execute() instead of ::prove()
-    // todo: address overhead by using a non-succinct RSP (post-POC optimization, requires alignment with evolve-zkevm)
     let trusted_celestia_height = state.celestia_height;
-    let mut trusted_height = state.height;
-    let mut trusted_root = FixedBytes::from_slice(&state.state_root);
+    let trusted_height = state.height;
+    let trusted_root: FixedBytes<32> = FixedBytes::from_slice(&state.state_root);
     let celestia_head = chain_context
         .celestia_client()
         .header_local_head()
@@ -84,27 +84,20 @@ async fn test_compute_evolve_state_root() {
         .height()
         .value();
 
-    let prefetched = prefetch_celestia_data_batch(
-        chain_context.clone(),
+    // Get middleware endpoint from environment variable
+    let middleware_url = std::env::var("MIDDLEWARE_ENDPOINT")
+        .unwrap_or_else(|_| "http://178.199.12.26:9091".to_string());
+
+    // Fetch block inputs from middleware (replaces direct prefetch/build logic)
+    let block_inputs = fetch_block_inputs_from_middleware(
+        &middleware_url,
         trusted_celestia_height + 1,
         celestia_head,
+        trusted_height,
+        &hex::encode(trusted_root.as_slice()),
     )
     .await
-    .expect("Failed to prefetch Celestia data");
-
-    // Phase 2: Process sequentially to handle trusted state updates
-    let mut block_inputs = Vec::new();
-    for prefetched_data in prefetched {
-        let input = build_block_input_from_prefetched(
-            chain_context.clone(),
-            prefetched_data,
-            &mut trusted_height,
-            &mut trusted_root,
-        )
-        .await
-        .unwrap();
-        block_inputs.push(input);
-    }
+    .expect("Failed to fetch block inputs from middleware");
 
     // get light blocks
     let trusted_light_block = get_light_block(&tendermint_client, trusted_celestia_height)

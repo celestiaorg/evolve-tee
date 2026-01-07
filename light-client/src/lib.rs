@@ -4,6 +4,7 @@ use alloy::primitives::FixedBytes;
 use alloy_provider::{Provider, fillers::FillProvider};
 use anyhow::{Context, Result, anyhow};
 use celestia_rpc::{BlobClient, HeaderClient, ShareClient};
+use serde::Deserialize;
 
 use celestia_types::{Blob, ExtendedHeader, Height, ValidatorSet, nmt::NamespaceProof};
 use ev_prover::prover::chain::ChainContext;
@@ -347,4 +348,78 @@ fn sort_signatures_by_validators_power_desc(
             .unwrap_or(&0);
         power_b.cmp(power_a)
     });
+}
+
+/// Response from the middleware service for block input queries.
+#[derive(Deserialize)]
+struct QueryBlockInputsResponse {
+    success: bool,
+    block_inputs: Option<Vec<String>>,
+    error: Option<String>,
+}
+
+/// Fetches block inputs from the middleware service.
+///
+/// This function calls the middleware's `/query_block_inputs` endpoint which
+/// handles all the expensive RPC calls and returns pre-built BlockExecInput data.
+/// This reduces network overhead from O(n) RPC calls to O(1) HTTP request,
+/// which is critical in TEE environments where network I/O is expensive.
+///
+/// # Arguments
+///
+/// * `middleware_url` - The base URL of the middleware service (e.g., "http://localhost:9091")
+/// * `from_height` - Starting Celestia height (inclusive)
+/// * `to_height` - Ending Celestia height (inclusive)
+/// * `trusted_height` - The trusted EVM block height
+/// * `trusted_root` - The trusted EVM state root as a hex string (without 0x prefix)
+///
+/// # Returns
+///
+/// A vector of `BlockExecInput` in sequential order from `from_height` to `to_height`.
+pub async fn fetch_block_inputs_from_middleware(
+    middleware_url: &str,
+    from_height: u64,
+    to_height: u64,
+    trusted_height: u64,
+    trusted_root: &str,
+) -> Result<Vec<BlockExecInput>> {
+    let url = format!(
+        "{}/query_block_inputs?from_height={}&to_height={}&trusted_height={}&trusted_root={}",
+        middleware_url, from_height, to_height, trusted_height, trusted_root
+    );
+
+    let client = reqwest::Client::new();
+    let response: QueryBlockInputsResponse = client
+        .get(&url)
+        .send()
+        .await
+        .map_err(|e| anyhow!("Failed to send request to middleware: {}", e))?
+        .json()
+        .await
+        .map_err(|e| anyhow!("Failed to parse middleware response: {}", e))?;
+
+    if !response.success {
+        return Err(anyhow!(
+            "Middleware returned error: {}",
+            response
+                .error
+                .unwrap_or_else(|| "Unknown error".to_string())
+        ));
+    }
+
+    let block_inputs_hex = response
+        .block_inputs
+        .ok_or_else(|| anyhow!("No block inputs in response"))?;
+
+    // Deserialize block inputs from hex
+    let mut block_inputs = Vec::new();
+    for hex_str in block_inputs_hex {
+        let bytes = hex::decode(&hex_str)
+            .map_err(|e| anyhow!("Failed to decode block input hex: {}", e))?;
+        let input: BlockExecInput = bincode::deserialize(&bytes)
+            .map_err(|e| anyhow!("Failed to deserialize block input: {}", e))?;
+        block_inputs.push(input);
+    }
+
+    Ok(block_inputs)
 }

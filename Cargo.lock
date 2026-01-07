@@ -5802,6 +5802,7 @@ dependencies = [
  "futures",
  "hex",
  "light-client",
+ "rustls 0.23.35",
  "serde",
  "serde_json",
  "tendermint-rpc",

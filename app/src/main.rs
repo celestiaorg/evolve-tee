@@ -8,68 +8,12 @@ use celestia_rpc::HeaderClient;
 use dstack_sdk::dstack_client::DstackClient;
 use ev_prover::{config::Config, prover::chain::ChainContext};
 use ev_zkevm_types::programs::block::{BlockExecInput, State};
-use light_client::{get_light_block, verify_blocks};
-use serde::Deserialize;
+use light_client::{fetch_block_inputs_from_middleware, get_light_block, verify_blocks};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use tendermint_rpc::HttpClient as TendermintHttpClient;
 
 const MAX_BLOCKS: u64 = 1000;
-
-#[derive(Debug, Deserialize)]
-struct QueryBlockInputsResponse {
-    success: bool,
-    block_inputs: Option<Vec<String>>,
-    error: Option<String>,
-}
-
-async fn fetch_block_inputs_from_middleware(
-    middleware_url: &str,
-    from_height: u64,
-    to_height: u64,
-    trusted_height: u64,
-    trusted_root: &str,
-) -> anyhow::Result<Vec<BlockExecInput>> {
-    let url = format!(
-        "{}/query_block_inputs?from_height={}&to_height={}&trusted_height={}&trusted_root={}",
-        middleware_url, from_height, to_height, trusted_height, trusted_root
-    );
-
-    let client = reqwest::Client::new();
-    let response: QueryBlockInputsResponse = client
-        .get(&url)
-        .send()
-        .await
-        .map_err(|e| anyhow!("Failed to send request to middleware: {}", e))?
-        .json()
-        .await
-        .map_err(|e| anyhow!("Failed to parse middleware response: {}", e))?;
-
-    if !response.success {
-        return Err(anyhow!(
-            "Middleware returned error: {}",
-            response
-                .error
-                .unwrap_or_else(|| "Unknown error".to_string())
-        ));
-    }
-
-    let block_inputs_hex = response
-        .block_inputs
-        .ok_or_else(|| anyhow!("No block inputs in response"))?;
-
-    // Deserialize block inputs from hex
-    let mut block_inputs = Vec::new();
-    for hex_str in block_inputs_hex {
-        let bytes = hex::decode(&hex_str)
-            .map_err(|e| anyhow!("Failed to decode block input hex: {}", e))?;
-        let input: BlockExecInput = bincode::deserialize(&bytes)
-            .map_err(|e| anyhow!("Failed to deserialize block input: {}", e))?;
-        block_inputs.push(input);
-    }
-
-    Ok(block_inputs)
-}
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {

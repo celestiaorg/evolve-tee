@@ -37,6 +37,7 @@ rsp-host-executor.workspace = true
 rsp-primitives.workspace = true
 rsp-rpc-db.workspace = true
 futures.workspace = true
+reqwest.workspace = true
 
 [dev-dependencies]
 reqwest.workspace = true
