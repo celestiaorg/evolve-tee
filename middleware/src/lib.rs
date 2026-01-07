@@ -6,7 +6,6 @@ use axum::{extract::Query, routing::get, Json, Router};
 use celestia_grpc_client::{types::ClientConfig, CelestiaIsmClient};
 use ev_prover::{config::Config, prover::chain::ChainContext};
 use ev_zkevm_types::programs::block::BlockExecInput;
-use light_client::{build_block_input_from_prefetched, prefetch_celestia_data_batch};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 
@@ -64,7 +63,9 @@ async fn query_block_inputs(
     }
 }
 
-async fn fetch_block_inputs(params: QueryBlockInputsParams) -> Result<(Vec<BlockExecInput>, TimingInfo)> {
+async fn fetch_block_inputs(
+    params: QueryBlockInputsParams,
+) -> Result<(Vec<BlockExecInput>, TimingInfo)> {
     let total_start = std::time::Instant::now();
 
     // Parse trusted root from hex string
@@ -103,17 +104,12 @@ async fn fetch_block_inputs(params: QueryBlockInputsParams) -> Result<(Vec<Block
         .await
         .map_err(|e| anyhow!("Failed to create chain context: {}", e))?;
 
-    // Batch prefetch Celestia data and process blocks
-    let prefetched =
-        prefetch_celestia_data_batch(chain_context.clone(), params.from_height, params.to_height)
-            .await?;
-
-    // Process sequentially to handle trusted state updates (includes executor input generation)
+    // Build block inputs sequentially to handle trusted state updates
     let mut block_inputs = Vec::new();
-    for prefetched_data in prefetched {
-        let (input, _) = build_block_input_from_prefetched(
+    for height in params.from_height..=params.to_height {
+        let input = light_client::build_block_input(
             chain_context.clone(),
-            prefetched_data,
+            height,
             &mut trusted_height,
             &mut trusted_root,
         )

@@ -9,8 +9,7 @@ use dstack_verifier::Attestation;
 use ev_prover::{config::Config, prover::chain::ChainContext};
 use ev_zkevm_types::programs::block::State;
 use light_client::{
-    CIRCUIT_ELF, fetch_block_inputs_from_middleware, get_light_block, prefetch_celestia_data_batch,
-    verify_blocks,
+    CIRCUIT_ELF, fetch_block_inputs_from_middleware, get_light_block, verify_blocks,
 };
 use serde::Deserialize;
 use sp1_sdk::{ProverClient, SP1Stdin};
@@ -346,70 +345,3 @@ fn test_verify_attestation_sp1_proof() {
     .expect("Failed to verify Groth16 proof from fixture");
 }
 
-/// Tests that prefetch_celestia_data_batch preserves the order of results.
-///
-/// This test fetches a range of blocks using the batched prefetch function
-/// and verifies that the returned data is in sequential height order.
-#[tokio::test(flavor = "multi_thread")]
-async fn test_batch_prefetch_preserves_order() {
-    rustls::crypto::aws_lc_rs::default_provider()
-        .install_default()
-        .map_err(|_| anyhow::anyhow!("Failed to install default crypto provider"))
-        .unwrap();
-
-    dotenvy::dotenv().ok();
-
-    let ism_client = CelestiaIsmClient::new(ClientConfig::from_env().unwrap())
-        .await
-        .unwrap();
-
-    // Override default config with remote RPC endpoints
-    let mut config = Config::default();
-    config.rpc.celestia_rpc = "http://178.199.12.26:26658".to_string();
-    config.rpc.evnode_rpc = "http://178.199.12.26:26658".to_string();
-    config.rpc.evreth_rpc = "http://178.199.12.26:8545".to_string();
-    config.rpc.evreth_ws = "ws://178.199.12.26:8546".to_string();
-    config.pub_key = "3964a68700cf76e215626e076e76d23bd1f4c3b31184b5822fd7b4df15d5ce9a".to_string();
-
-    let chain_context = ChainContext::from_config(config, Arc::new(ism_client))
-        .await
-        .unwrap();
-
-    // Get current head
-    let celestia_head = chain_context
-        .celestia_client()
-        .header_local_head()
-        .await
-        .unwrap()
-        .height()
-        .value();
-
-    // Fetch a range of 20 blocks (enough to test concurrency with buffered(10))
-    let from_height = celestia_head.saturating_sub(20);
-    let to_height = celestia_head;
-
-    let prefetched = prefetch_celestia_data_batch(chain_context, from_height, to_height)
-        .await
-        .expect("Failed to batch prefetch Celestia data");
-
-    // Verify we got the expected number of results
-    let expected_count = (to_height - from_height + 1) as usize;
-    assert_eq!(
-        prefetched.len(),
-        expected_count,
-        "Expected {} results, got {}",
-        expected_count,
-        prefetched.len()
-    );
-
-    // Verify results are in sequential order
-    let mut expected_height = from_height;
-    for (idx, data) in prefetched.iter().enumerate() {
-        assert_eq!(
-            data.height, expected_height,
-            "Height mismatch at index {}: expected {}, got {}",
-            idx, expected_height, data.height
-        );
-        expected_height += 1;
-    }
-}
