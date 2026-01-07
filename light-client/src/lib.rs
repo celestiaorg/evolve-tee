@@ -204,40 +204,37 @@ pub async fn build_block_input_from_prefetched(
 
     // Process blobs to extract executor inputs
     // Match the reference implementation logic exactly
-    let mut executor_inputs: Vec<EthClientExecutorInput> = Vec::new();
-    let mut last_height = 0;
+    use futures::stream::{StreamExt, TryStreamExt};
 
+    // First pass: extract heights from blobs
+    let mut heights_to_fetch = Vec::new();
     for blob in blobs.as_slice() {
         let signed_data = match SignedData::decode(blob.data.as_slice()) {
             Ok(data) => data,
             Err(_) => continue,
         };
 
-        /*// Debug: print signer from signed blob
-        if let Some(signer) = &signed_data.signer {
-            println!(
-                "Blob signer: {:?}\nExpected pubkey: {}",
-                hex::encode(&signer.pub_key),
-                hex::encode(chain_context.pub_key_bytes())
-            );
-        }*/
-
         let data = signed_data.data.ok_or_else(|| anyhow!("Data not found"))?;
         let height = data
             .metadata
             .ok_or_else(|| anyhow!("Metadata not found"))?
             .height;
-        last_height = height;
-
-        let client_executor_input = generate_executor_input(
-            chain_context.chain_spec(),
-            chain_context.genesis(),
-            chain_context.evm_provider(),
-            height,
-        )
-        .await?;
-        executor_inputs.push(client_executor_input);
+        heights_to_fetch.push(height);
     }
+
+    let last_height = heights_to_fetch.last().copied().unwrap_or(0);
+
+    // Second pass: fetch executor inputs in parallel with controlled concurrency
+    let executor_inputs: Vec<EthClientExecutorInput> = futures::stream::iter(heights_to_fetch)
+        .map(|height| {
+            let chain_spec = chain_context.chain_spec();
+            let genesis = chain_context.genesis();
+            let provider = chain_context.evm_provider();
+            async move { generate_executor_input(chain_spec, genesis, provider, height).await }
+        })
+        .buffered(MAX_CONCURRENCY)
+        .try_collect()
+        .await?;
 
     // Construct the block execution input
     let input = BlockExecInput {
