@@ -89,7 +89,7 @@ async fn test_compute_evolve_state_root() {
         .unwrap_or_else(|_| "http://178.199.12.26:9091".to_string());
 
     // Fetch block inputs from middleware (replaces direct prefetch/build logic)
-    let block_inputs = fetch_block_inputs_from_middleware(
+    let (block_inputs, middleware_timing) = fetch_block_inputs_from_middleware(
         &middleware_url,
         trusted_celestia_height + 1,
         celestia_head,
@@ -98,6 +98,13 @@ async fn test_compute_evolve_state_root() {
     )
     .await
     .expect("Failed to fetch block inputs from middleware");
+
+    if let Some(timing) = middleware_timing {
+        println!(
+            "Middleware timing: prefetch={:.2}s, executor={:.2}s, total={:.2}s",
+            timing.prefetch_seconds, timing.executor_inputs_seconds, timing.total_seconds
+        );
+    }
 
     // get light blocks
     let trusted_light_block = get_light_block(&tendermint_client, trusted_celestia_height)

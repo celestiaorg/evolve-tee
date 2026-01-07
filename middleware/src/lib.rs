@@ -23,6 +23,14 @@ pub struct QueryBlockInputsResponse {
     pub success: bool,
     pub block_inputs: Option<Vec<String>>,
     pub error: Option<String>,
+    pub timing: Option<TimingInfo>,
+}
+
+#[derive(Debug, Serialize)]
+pub struct TimingInfo {
+    pub prefetch_seconds: f64,
+    pub executor_inputs_seconds: f64,
+    pub total_seconds: f64,
 }
 
 pub fn create_router() -> Router {
@@ -33,7 +41,7 @@ async fn query_block_inputs(
     Query(params): Query<QueryBlockInputsParams>,
 ) -> Json<QueryBlockInputsResponse> {
     match fetch_block_inputs(params).await {
-        Ok(block_inputs) => {
+        Ok((block_inputs, timing)) => {
             let serialized_inputs: Vec<String> = block_inputs
                 .into_iter()
                 .map(|input| {
@@ -46,17 +54,21 @@ async fn query_block_inputs(
                 success: true,
                 block_inputs: Some(serialized_inputs),
                 error: None,
+                timing: Some(timing),
             })
         }
         Err(e) => Json(QueryBlockInputsResponse {
             success: false,
             block_inputs: None,
             error: Some(e.to_string()),
+            timing: None,
         }),
     }
 }
 
-async fn fetch_block_inputs(params: QueryBlockInputsParams) -> Result<Vec<BlockExecInput>> {
+async fn fetch_block_inputs(params: QueryBlockInputsParams) -> Result<(Vec<BlockExecInput>, TimingInfo)> {
+    let total_start = std::time::Instant::now();
+
     // Parse trusted root from hex string
     let trusted_root_bytes = hex::decode(&params.trusted_root)
         .map_err(|e| anyhow!("Invalid trusted_root hex: {}", e))?;
@@ -94,11 +106,14 @@ async fn fetch_block_inputs(params: QueryBlockInputsParams) -> Result<Vec<BlockE
         .map_err(|e| anyhow!("Failed to create chain context: {}", e))?;
 
     // Batch prefetch all Celestia data
+    let prefetch_start = std::time::Instant::now();
     let prefetched =
         prefetch_celestia_data_batch(chain_context.clone(), params.from_height, params.to_height)
             .await?;
+    let prefetch_duration = prefetch_start.elapsed();
 
-    // Process sequentially to handle trusted state updates
+    // Process sequentially to handle trusted state updates (includes executor input generation)
+    let executor_start = std::time::Instant::now();
     let mut block_inputs = Vec::new();
     for prefetched_data in prefetched {
         let input = build_block_input_from_prefetched(
@@ -110,8 +125,22 @@ async fn fetch_block_inputs(params: QueryBlockInputsParams) -> Result<Vec<BlockE
         .await?;
         block_inputs.push(input);
     }
+    let executor_duration = executor_start.elapsed();
 
-    Ok(block_inputs)
+    let total_duration = total_start.elapsed();
+
+    let timing = TimingInfo {
+        prefetch_seconds: prefetch_duration.as_secs_f64(),
+        executor_inputs_seconds: executor_duration.as_secs_f64(),
+        total_seconds: total_duration.as_secs_f64(),
+    };
+
+    println!(
+        "Timing report: prefetch={:.2}s, executor_inputs={:.2}s, total={:.2}s",
+        timing.prefetch_seconds, timing.executor_inputs_seconds, timing.total_seconds
+    );
+
+    Ok((block_inputs, timing))
 }
 
 pub async fn health_check() -> Json<Value> {

@@ -179,7 +179,8 @@ async fn get_attestation() -> Json<Value> {
 
     let trusted_root_hex = hex::encode(trusted_root.as_slice());
 
-    let block_inputs: Vec<BlockExecInput> = match fetch_block_inputs_from_middleware(
+    let fetch_start = std::time::Instant::now();
+    let (block_inputs, middleware_timing) = match fetch_block_inputs_from_middleware(
         &middleware_url,
         trusted_celestia_height + 1,
         celestia_head,
@@ -188,13 +189,26 @@ async fn get_attestation() -> Json<Value> {
     )
     .await
     {
-        Ok(inputs) => inputs,
+        Ok(result) => result,
         Err(e) => {
             return Json(
                 json!({"error": format!("Failed to fetch block inputs from middleware: {}", e), "step": 6}),
             )
         }
     };
+    let fetch_duration = fetch_start.elapsed();
+    println!(
+        "  Fetch completed in {:.2}s ({} blocks, {:.2}ms per block)",
+        fetch_duration.as_secs_f64(),
+        num_blocks,
+        fetch_duration.as_millis() as f64 / num_blocks as f64
+    );
+    if let Some(ref timing) = middleware_timing {
+        println!(
+            "  Middleware timing: prefetch={:.2}s, executor_inputs={:.2}s",
+            timing.prefetch_seconds, timing.executor_inputs_seconds
+        );
+    }
 
     // Step 7: Get light blocks
     println!("Step 7: Getting light blocks...");
@@ -218,13 +232,18 @@ async fn get_attestation() -> Json<Value> {
     };
     // Step 8: Native block verification (replaces SP1 execution for TEE)
     println!("Step 8: Running native block verification...");
+    let verify_start = std::time::Instant::now();
     let output = match verify_blocks(block_inputs, trusted_light_block, new_light_block).await {
         Ok(o) => o,
         Err(e) => {
             return Json(json!({"error": format!("Block verification failed: {}", e), "step": 8}))
         }
     };
-    println!("Verification completed");
+    let verify_duration = verify_start.elapsed();
+    println!(
+        "  Verification completed in {:.2}s",
+        verify_duration.as_secs_f64()
+    );
 
     // Serialize output (same format as SP1 would commit)
     let output_bytes = bincode::serialize(&output).expect("failed to serialize output");
@@ -241,12 +260,27 @@ async fn get_attestation() -> Json<Value> {
         }
     };
 
-    Json(json!({
+    let mut response = json!({
         "success": true,
         "quote": result.quote,
         "event_log": result.event_log,
         "output": hex::encode(&output_bytes),
-    }))
+        "timing": {
+            "fetch_seconds": fetch_duration.as_secs_f64(),
+            "verify_blocks_seconds": verify_duration.as_secs_f64(),
+        }
+    });
+
+    // Add middleware timing if available
+    if let Some(timing) = middleware_timing {
+        response["timing"]["middleware"] = json!({
+            "prefetch_seconds": timing.prefetch_seconds,
+            "executor_inputs_seconds": timing.executor_inputs_seconds,
+            "total_seconds": timing.total_seconds,
+        });
+    }
+
+    Json(response)
 }
 
 fn sha256(data: &[u8]) -> Vec<u8> {

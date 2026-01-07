@@ -101,11 +101,15 @@ pub async fn prefetch_celestia_data_batch(
 ) -> Result<Vec<PrefetchedCelestiaData>> {
     use futures::stream::{StreamExt, TryStreamExt};
 
+    let num_blocks = to_height - from_height + 1;
+    let prefetch_start = std::time::Instant::now();
     println!(
-        "Prefetching Celestia data from height {} to {}",
-        from_height, to_height
+        "Prefetching Celestia data from height {} to {} ({} blocks)",
+        from_height, to_height, num_blocks
     );
+
     // First, get the starting header
+    let header_start = std::time::Instant::now();
     let from_header = chain_context
         .celestia_client()
         .header_get_by_height(from_height)
@@ -124,6 +128,12 @@ pub async fn prefetch_celestia_data_batch(
         headers.extend(range_headers);
         headers
     };
+    let header_duration = header_start.elapsed();
+    println!(
+        "  Headers fetched in {:.2}s ({} blocks)",
+        header_duration.as_secs_f64(),
+        num_blocks
+    );
 
     // Create a map of height -> header for easy lookup
     let header_map: HashMap<u64, ExtendedHeader> = headers
@@ -133,6 +143,7 @@ pub async fn prefetch_celestia_data_batch(
 
     // Fetch blobs and proofs with limited concurrency (100 parallel requests at a time)
     // Using `buffered` instead of `buffer_unordered` to preserve order
+    let blobs_start = std::time::Instant::now();
     let heights: Vec<u64> = (from_height..=to_height).collect();
     let prefetched: Vec<PrefetchedCelestiaData> = futures::stream::iter(heights)
         .map(|height| {
@@ -169,6 +180,20 @@ pub async fn prefetch_celestia_data_batch(
         .buffered(MAX_CONCURRENCY)
         .try_collect()
         .await?;
+    let blobs_duration = blobs_start.elapsed();
+    println!(
+        "  Blobs and proofs fetched in {:.2}s ({} blocks, {:.2}ms per block)",
+        blobs_duration.as_secs_f64(),
+        num_blocks,
+        blobs_duration.as_millis() as f64 / num_blocks as f64
+    );
+
+    let prefetch_duration = prefetch_start.elapsed();
+    println!(
+        "  Total prefetch completed in {:.2}s ({:.2}ms per block)",
+        prefetch_duration.as_secs_f64(),
+        prefetch_duration.as_millis() as f64 / num_blocks as f64
+    );
 
     Ok(prefetched)
 }
@@ -356,6 +381,14 @@ struct QueryBlockInputsResponse {
     success: bool,
     block_inputs: Option<Vec<String>>,
     error: Option<String>,
+    timing: Option<MiddlewareTiming>,
+}
+
+#[derive(Deserialize, Clone, Debug)]
+pub struct MiddlewareTiming {
+    pub prefetch_seconds: f64,
+    pub executor_inputs_seconds: f64,
+    pub total_seconds: f64,
 }
 
 /// Fetches block inputs from the middleware service.
@@ -375,14 +408,15 @@ struct QueryBlockInputsResponse {
 ///
 /// # Returns
 ///
-/// A vector of `BlockExecInput` in sequential order from `from_height` to `to_height`.
+/// A tuple of (`BlockExecInput` vector, optional `MiddlewareTiming`).
+/// The vector contains inputs in sequential order from `from_height` to `to_height`.
 pub async fn fetch_block_inputs_from_middleware(
     middleware_url: &str,
     from_height: u64,
     to_height: u64,
     trusted_height: u64,
     trusted_root: &str,
-) -> Result<Vec<BlockExecInput>> {
+) -> Result<(Vec<BlockExecInput>, Option<MiddlewareTiming>)> {
     let url = format!(
         "{}/query_block_inputs?from_height={}&to_height={}&trusted_height={}&trusted_root={}",
         middleware_url, from_height, to_height, trusted_height, trusted_root
@@ -421,5 +455,5 @@ pub async fn fetch_block_inputs_from_middleware(
         block_inputs.push(input);
     }
 
-    Ok(block_inputs)
+    Ok((block_inputs, response.timing))
 }
