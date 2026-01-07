@@ -28,10 +28,8 @@ pub struct QueryBlockInputsResponse {
 
 #[derive(Debug, Serialize)]
 pub struct TimingInfo {
-    pub prefetch_seconds: f64,
-    pub host_executor_seconds: f64,
-    pub executor_inputs_seconds: f64,
-    pub total_seconds: f64,
+    pub total_time_seconds: f64,
+    pub raw_execution_seconds: f64,
 }
 
 pub fn create_router() -> Router {
@@ -106,19 +104,15 @@ async fn fetch_block_inputs(params: QueryBlockInputsParams) -> Result<(Vec<Block
         .await
         .map_err(|e| anyhow!("Failed to create chain context: {}", e))?;
 
-    // Batch prefetch all Celestia data
-    let prefetch_start = std::time::Instant::now();
+    // Batch prefetch Celestia data and process blocks
     let prefetched =
         prefetch_celestia_data_batch(chain_context.clone(), params.from_height, params.to_height)
             .await?;
-    let prefetch_duration = prefetch_start.elapsed();
 
     // Process sequentially to handle trusted state updates (includes executor input generation)
-    let executor_inputs_start = std::time::Instant::now();
     let mut block_inputs = Vec::new();
-    let mut total_host_executor_wall_time = std::time::Duration::ZERO;
     for prefetched_data in prefetched {
-        let (input, executor_wall_time) = build_block_input_from_prefetched(
+        let (input, _) = build_block_input_from_prefetched(
             chain_context.clone(),
             prefetched_data,
             &mut trusted_height,
@@ -126,22 +120,21 @@ async fn fetch_block_inputs(params: QueryBlockInputsParams) -> Result<(Vec<Block
         )
         .await?;
         block_inputs.push(input);
-        total_host_executor_wall_time += executor_wall_time;
     }
-    let executor_inputs_duration = executor_inputs_start.elapsed();
 
     let total_duration = total_start.elapsed();
 
+    // Note: We cannot accurately separate "raw execution time" from "RPC fetch time"
+    // because RpcDb fetches state on-demand during execution. They are interleaved.
+    // For now, total_time includes everything (Celestia fetch + RPC fetch + execution)
     let timing = TimingInfo {
-        prefetch_seconds: prefetch_duration.as_secs_f64(),
-        host_executor_seconds: total_host_executor_wall_time.as_secs_f64(),
-        executor_inputs_seconds: executor_inputs_duration.as_secs_f64(),
-        total_seconds: total_duration.as_secs_f64(),
+        total_time_seconds: total_duration.as_secs_f64(),
+        raw_execution_seconds: 0.0, // Cannot measure separately without modifying RSP
     };
 
     println!(
-        "Timing report: prefetch={:.2}s, host_executor={:.2}s, executor_inputs={:.2}s, total={:.2}s",
-        timing.prefetch_seconds, timing.host_executor_seconds, timing.executor_inputs_seconds, timing.total_seconds
+        "Timing report: total={:.2}s (includes Celestia fetch + RPC state fetch + execution)",
+        timing.total_time_seconds
     );
 
     Ok((block_inputs, timing))

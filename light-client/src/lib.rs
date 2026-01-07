@@ -20,7 +20,7 @@ use sp1_sdk::include_elf;
 use tendermint_light_client_verifier::types::{LightBlock, SignedHeader};
 use tendermint_rpc::{Client as TendermintClient, HttpClient as TendermintHttpClient};
 
-const MAX_CONCURRENCY: usize = 100;
+const MAX_CONCURRENCY: usize = 500;
 
 pub type DefaultProvider = FillProvider<
     alloy_provider::fillers::JoinFill<
@@ -308,13 +308,14 @@ async fn generate_executor_input(
     let host_executor = EthHostExecutor::eth(chain_spec, None);
     let rpc_db = RpcDb::new(provider.clone(), block_number.saturating_sub(1));
 
-    let exec_start = std::time::Instant::now();
     let executor_input = host_executor
         .execute(block_number, &rpc_db, &provider, genesis, None, false)
         .await?;
-    let exec_duration = exec_start.elapsed();
 
-    Ok((executor_input, exec_duration))
+    // Note: We can't easily measure raw execution time vs RPC time from here
+    // because it's all inside host_executor.execute(). The RpcDb fetches state
+    // on-demand during execution, so they're interleaved.
+    Ok((executor_input, std::time::Duration::ZERO))
 }
 
 /// Fetches a Tendermint LightBlock at the given height.
@@ -396,10 +397,8 @@ struct QueryBlockInputsResponse {
 
 #[derive(Deserialize, Clone, Debug)]
 pub struct MiddlewareTiming {
-    pub prefetch_seconds: f64,
-    pub host_executor_seconds: f64,
-    pub executor_inputs_seconds: f64,
-    pub total_seconds: f64,
+    pub total_time_seconds: f64,
+    pub raw_execution_seconds: f64,
 }
 
 /// Fetches block inputs from the middleware service.
