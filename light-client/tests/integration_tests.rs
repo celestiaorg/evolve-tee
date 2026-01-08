@@ -7,7 +7,7 @@ use celestia_grpc_client::{CelestiaIsmClient, QueryIsmRequest, types::ClientConf
 use celestia_rpc::HeaderClient;
 use dstack_verifier::Attestation;
 use ev_prover::{config::Config, prover::chain::ChainContext};
-use ev_zkevm_types::programs::block::State;
+use ev_zkevm_types::programs::block::{BlockExecOutput, State};
 use light_client::{
     CIRCUIT_ELF, fetch_block_inputs_from_middleware, get_light_block, verify_blocks,
 };
@@ -23,8 +23,8 @@ struct QuoteReport {
     quote: String,
     /// Event log data for attestation verification.
     event_log: String,
-    /// Report data embedded in the quote.
-    report_data: String,
+    /// Hex-encoded output data committed to in the attestation.
+    output: Option<String>,
 }
 
 /// Tests computing the Evolve state root using the middleware service.
@@ -190,12 +190,20 @@ async fn test_generate_proof() {
         .duration_since(SystemTime::UNIX_EPOCH)
         .expect("Failed to get current time")
         .as_secs();
+
+    // Decode the output if present in the fixture, otherwise use empty vec
+    let output = report
+        .output
+        .as_ref()
+        .map(|o| hex::decode(o).expect("Failed to decode output hex"))
+        .unwrap_or_else(Vec::new);
+
     let inputs: Inputs = Inputs {
         quote,
         event_log: event_log.to_vec(),
-        report_data: report.report_data.as_bytes().to_vec(),
+        report_data: Vec::new(), // Not used - report_data is extracted from quote in circuit
         collateral,
-        output: Vec::new(),
+        output,
         now,
     };
 
@@ -203,7 +211,12 @@ async fn test_generate_proof() {
     let (pk, _vk) = prover_client.setup(CIRCUIT_ELF);
     let mut stdin = SP1Stdin::new();
     stdin.write(&inputs);
-    let _proof = prover_client.prove(&pk, &stdin).compressed().run().unwrap();
+    let proof = prover_client.prove(&pk, &stdin).compressed().run().unwrap();
+    let outputs: BlockExecOutput = bincode::deserialize(&proof.public_values.as_slice()).unwrap();
+    assert_eq!(
+        hex::encode(outputs.new_state_root),
+        "a059811e85dd8053da9b37ab90e60d74c19f417f5691651d74128fe39270c7df"
+    );
 }
 
 /// Response from the TEE app's `/attestation` endpoint.
