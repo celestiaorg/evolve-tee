@@ -7,7 +7,7 @@ use celestia_grpc_client::{CelestiaIsmClient, QueryIsmRequest, types::ClientConf
 use celestia_rpc::HeaderClient;
 use dstack_verifier::Attestation;
 use ev_prover::{config::Config, prover::chain::ChainContext};
-use ev_zkevm_types::programs::block::{BlockExecOutput, State};
+use ev_zkevm_types::programs::block::{BlockRangeExecOutput, State};
 use light_client::{
     CIRCUIT_ELF, fetch_block_inputs_from_middleware, get_light_block, verify_blocks,
 };
@@ -212,10 +212,14 @@ async fn test_generate_proof() {
     let mut stdin = SP1Stdin::new();
     stdin.write(&inputs);
     let proof = prover_client.prove(&pk, &stdin).compressed().run().unwrap();
-    let outputs: BlockExecOutput = bincode::deserialize(&proof.public_values.as_slice()).unwrap();
+
+    // Also verify the block execution output contains the expected state root
+    let block_output: BlockRangeExecOutput =
+        bincode::deserialize(&proof.public_values.as_slice()).unwrap();
     assert_eq!(
-        hex::encode(outputs.new_state_root),
-        "a059811e85dd8053da9b37ab90e60d74c19f417f5691651d74128fe39270c7df"
+        hex::encode(block_output.new_state.state_root),
+        "a059811e85dd8053da9b37ab90e60d74c19f417f5691651d74128fe39270c7df",
+        "New state root should match expected value"
     );
 }
 
