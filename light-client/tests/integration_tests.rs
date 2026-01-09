@@ -8,11 +8,11 @@ use celestia_rpc::HeaderClient;
 use dstack_verifier::Attestation;
 use ev_prover::{config::Config, prover::chain::ChainContext};
 use ev_zkevm_types::programs::block::{BlockRangeExecOutput, State};
-use light_client::{
-    CIRCUIT_ELF, fetch_block_inputs_from_middleware, get_light_block, verify_blocks,
-};
 use serde::Deserialize;
 use sp1_sdk::{ProverClient, SP1Stdin};
+use tee_light_client_lib::{
+    CIRCUIT_ELF, fetch_block_inputs_from_middleware, get_light_block, verify_blocks,
+};
 use tendermint_rpc::HttpClient as TendermintHttpClient;
 use types::Inputs;
 

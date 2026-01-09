@@ -1,11 +1,10 @@
 [package]
-name = "circuit"
+name = "tee-attestation-program"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 sp1-zkvm.workspace = true
-#dstack-verifier.workspace = true
 types.workspace = true
 dcap-qvl.workspace = true
 serde_json.workspace = true

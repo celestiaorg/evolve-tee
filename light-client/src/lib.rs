@@ -37,7 +37,7 @@ pub type DefaultProvider = FillProvider<
     alloy_provider::RootProvider,
 >;
 
-pub const CIRCUIT_ELF: &[u8] = include_elf!("circuit");
+pub const CIRCUIT_ELF: &[u8] = include_elf!("tee-attestation-program");
 pub const BATCH_ELF: &[u8] = include_bytes!("../fixtures/ev-batch-elf");
 
 pub async fn verify_blocks(

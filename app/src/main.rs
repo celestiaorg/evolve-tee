@@ -8,7 +8,7 @@ use celestia_rpc::HeaderClient;
 use dstack_sdk::dstack_client::DstackClient;
 use ev_prover::{config::Config, prover::chain::ChainContext};
 use ev_zkevm_types::programs::block::State;
-use light_client::{fetch_block_inputs_from_middleware, get_light_block, verify_blocks};
+use tee_light_client_lib::{fetch_block_inputs_from_middleware, get_light_block, verify_blocks};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
 use tendermint_rpc::HttpClient as TendermintHttpClient;

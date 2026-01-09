@@ -107,7 +107,7 @@ async fn fetch_block_inputs(
     // Build block inputs sequentially to handle trusted state updates
     let mut block_inputs = Vec::new();
     for height in params.from_height..=params.to_height {
-        let input = light_client::build_block_input(
+        let input = tee_light_client_lib::build_block_input(
             chain_context.clone(),
             height,
             &mut trusted_height,
