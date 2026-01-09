@@ -248,3 +248,20 @@ pub struct TDReport15 {
     #[serde(with = "serde_bytes")]
     pub mr_service_td: [u8; 48],
 }
+
+/// Response from the TEE app's `/attestation` endpoint.
+#[derive(Deserialize)]
+pub struct AttestationResponse {
+    /// Whether the attestation request was successful.
+    pub success: bool,
+    /// Hex-encoded SGX/TDX quote bytes.
+    pub quote: Option<String>,
+    /// Event log data for attestation verification.
+    pub event_log: Option<String>,
+    /// Hex-encoded output data committed to in the attestation.
+    pub output: Option<String>,
+    /// Error message if the attestation failed.
+    pub error: Option<String>,
+    /// Step at which the attestation failed (if applicable).
+    pub step: Option<u32>,
+}
