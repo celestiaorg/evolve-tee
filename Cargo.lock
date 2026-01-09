@@ -10517,7 +10517,18 @@ dependencies = [
  "serde_json",
  "sha2 0.10.9",
  "sp1-zkvm",
- "types",
+ "tee-attestation-types",
+]
+
+[[package]]
+name = "tee-attestation-types"
+version = "0.1.0"
+dependencies = [
+ "dcap-qvl",
+ "hex",
+ "serde",
+ "serde_bytes",
+ "sha2 0.10.9",
 ]
 
 [[package]]
@@ -10555,10 +10566,10 @@ dependencies = [
  "sp1-build",
  "sp1-sdk",
  "sp1-verifier",
+ "tee-attestation-types",
  "tendermint-light-client-verifier",
  "tendermint-rpc",
  "tokio",
- "types",
  "url",
 ]
 
@@ -11369,17 +11380,6 @@ name = "typenum"
 version = "1.19.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "562d481066bde0658276a35467c4af00bdc6ee726305698a55b86e61d7ad82bb"
-
-[[package]]
-name = "types"
-version = "0.1.0"
-dependencies = [
- "dcap-qvl",
- "hex",
- "serde",
- "serde_bytes",
- "sha2 0.10.9",
-]
 
 [[package]]
 name = "ubyte"

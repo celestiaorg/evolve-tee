@@ -2,7 +2,7 @@
 
 sp1_zkvm::entrypoint!(main);
 use sha2::{Digest, Sha256};
-use types::{
+use tee_attestation_types::{
     EnclaveReport, EventLog, Inputs, Report, TDReport10, TDReport15, VerifiedReport,
     replay_event_logs, validate_tcb,
 };

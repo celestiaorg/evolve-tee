@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 sp1-zkvm.workspace = true
-types.workspace = true
+tee-attestation-types.workspace = true
 dcap-qvl.workspace = true
 serde_json.workspace = true
 sha2.workspace = true

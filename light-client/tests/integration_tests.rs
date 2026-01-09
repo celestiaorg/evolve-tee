@@ -10,11 +10,11 @@ use ev_prover::{config::Config, prover::chain::ChainContext};
 use ev_zkevm_types::programs::block::{BlockRangeExecOutput, State};
 use serde::Deserialize;
 use sp1_sdk::{ProverClient, SP1Stdin};
+use tee_attestation_types::Inputs;
 use tee_light_client_lib::{
     CIRCUIT_ELF, fetch_block_inputs_from_middleware, get_light_block, verify_blocks,
 };
 use tendermint_rpc::HttpClient as TendermintHttpClient;
-use types::Inputs;
 
 /// Represents a TEE quote report containing attestation data.
 #[derive(Deserialize)]
