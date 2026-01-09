@@ -12,7 +12,8 @@ use serde::Deserialize;
 use sp1_sdk::{ProverClient, SP1Stdin};
 use tee_attestation_types::Inputs;
 use tee_light_client_lib::{
-    CIRCUIT_ELF, fetch_block_inputs_from_middleware, get_light_block, verify_blocks,
+    AttestationResponse, CIRCUIT_ELF, fetch_block_inputs_from_middleware, get_light_block,
+    verify_blocks,
 };
 use tendermint_rpc::HttpClient as TendermintHttpClient;
 
@@ -221,23 +222,6 @@ async fn test_generate_proof() {
         "a059811e85dd8053da9b37ab90e60d74c19f417f5691651d74128fe39270c7df",
         "New state root should match expected value"
     );
-}
-
-/// Response from the TEE app's `/attestation` endpoint.
-#[derive(Deserialize)]
-struct AttestationResponse {
-    /// Whether the attestation request was successful.
-    success: bool,
-    /// Hex-encoded SGX/TDX quote bytes.
-    quote: Option<String>,
-    /// Event log data for attestation verification.
-    event_log: Option<String>,
-    /// Hex-encoded output data committed to in the attestation.
-    output: Option<String>,
-    /// Error message if the attestation failed.
-    error: Option<String>,
-    /// Step at which the attestation failed (if applicable).
-    step: Option<u32>,
 }
 
 /// Test that fetches attestation from the TEE app and generates a proof using the circuit.
