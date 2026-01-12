@@ -8,9 +8,9 @@ use celestia_rpc::HeaderClient;
 use dstack_sdk::dstack_client::DstackClient;
 use ev_prover::{config::Config, prover::chain::ChainContext};
 use ev_zkevm_types::programs::block::State;
-use tee_light_client_lib::{fetch_block_inputs_from_middleware, get_light_block, verify_blocks};
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
+use tee_light_client_lib::{fetch_block_inputs_from_middleware, get_light_block, verify_blocks};
 use tendermint_rpc::HttpClient as TendermintHttpClient;
 
 const MAX_BLOCKS: u64 = 10000;
@@ -70,7 +70,15 @@ async fn health_check() -> Json<Value> {
 async fn get_attestation() -> Json<Value> {
     // Step 1: Connect to Celestia ISM
     println!("Step 1: Connecting to Celestia ISM...");
-    let ism_client = match CelestiaIsmClient::new(ClientConfig::from_env().unwrap()).await {
+    let client_config = match ClientConfig::from_env() {
+        Ok(c) => c,
+        Err(e) => {
+            return Json(
+                json!({"error": format!("Failed to load Celestia ISM config from environment: {}", e), "step": 1}),
+            )
+        }
+    };
+    let ism_client = match CelestiaIsmClient::new(client_config).await {
         Ok(c) => c,
         Err(e) => {
             return Json(
@@ -81,10 +89,38 @@ async fn get_attestation() -> Json<Value> {
 
     println!("Step 2: Creating chain context...");
     let mut config = Config::default();
-    let celestia_rpc_url = std::env::var("CELESTIA_RPC_URL").unwrap();
-    let evnode_rpc_url = std::env::var("EV_NODE_URL").unwrap();
-    let evreth_rpc_url = std::env::var("RETH_RPC_URL").unwrap();
-    let evreth_ws_url = std::env::var("RETH_WS_URL").unwrap();
+    let celestia_rpc_url = match std::env::var("CELESTIA_RPC_URL") {
+        Ok(url) => url,
+        Err(_) => {
+            return Json(
+                json!({"error": "CELESTIA_RPC_URL environment variable not set", "step": 2}),
+            )
+        }
+    };
+    let evnode_rpc_url = match std::env::var("EV_NODE_URL") {
+        Ok(url) => url,
+        Err(_) => {
+            return Json(
+                json!({"error": "EV_NODE_URL environment variable not set", "step": 2}),
+            )
+        }
+    };
+    let evreth_rpc_url = match std::env::var("RETH_RPC_URL") {
+        Ok(url) => url,
+        Err(_) => {
+            return Json(
+                json!({"error": "RETH_RPC_URL environment variable not set", "step": 2}),
+            )
+        }
+    };
+    let evreth_ws_url = match std::env::var("RETH_WS_URL") {
+        Ok(url) => url,
+        Err(_) => {
+            return Json(
+                json!({"error": "RETH_WS_URL environment variable not set", "step": 2}),
+            )
+        }
+    };
     config.rpc.celestia_rpc = celestia_rpc_url;
     config.rpc.evnode_rpc = evnode_rpc_url;
     config.rpc.evreth_rpc = evreth_rpc_url;
@@ -102,7 +138,14 @@ async fn get_attestation() -> Json<Value> {
 
     // Step 3: Connect to Tendermint
     println!("Step 3: Connecting to Tendermint...");
-    let tendermint_rpc_url = std::env::var("TENDERMINT_RPC_URL").unwrap();
+    let tendermint_rpc_url = match std::env::var("TENDERMINT_RPC_URL") {
+        Ok(url) => url,
+        Err(_) => {
+            return Json(
+                json!({"error": "TENDERMINT_RPC_URL environment variable not set", "step": 3}),
+            )
+        }
+    };
     let tendermint_client = match TendermintHttpClient::new(tendermint_rpc_url.as_str()) {
         Ok(c) => c,
         Err(e) => {
@@ -240,7 +283,14 @@ async fn get_attestation() -> Json<Value> {
     );
 
     // Serialize output (same format as SP1 would commit)
-    let output_bytes = bincode::serialize(&output).expect("failed to serialize output");
+    let output_bytes = match bincode::serialize(&output) {
+        Ok(bytes) => bytes,
+        Err(e) => {
+            return Json(
+                json!({"error": format!("Failed to serialize output: {}", e), "step": 8}),
+            )
+        }
+    };
 
     // Step 9: Get TEE attestation
     println!("Step 9: Getting TEE attestation...");
@@ -276,6 +326,11 @@ fn sha256(data: &[u8]) -> Vec<u8> {
 
 async fn get_info() -> Json<Value> {
     let client = DstackClient::new(None);
-    let info = client.info().await.unwrap();
-    Json(json!(info))
+    match client.info().await {
+        Ok(info) => Json(json!(info)),
+        Err(e) => Json(json!({
+            "success": false,
+            "error": format!("Failed to get TEE info: {}", e),
+        })),
+    }
 }
