@@ -37,6 +37,9 @@ pub fn create_router() -> Router {
 async fn query_block_inputs(
     Query(params): Query<QueryBlockInputsParams>,
 ) -> Json<QueryBlockInputsResponse> {
+    println!("Received query_block_inputs request: from_height={}, to_height={}, trusted_height={}, trusted_root={}",
+        params.from_height, params.to_height, params.trusted_height, params.trusted_root);
+
     match fetch_block_inputs(params).await {
         Ok((block_inputs, timing)) => {
             let serialized_inputs: Vec<String> = block_inputs
@@ -47,19 +50,32 @@ async fn query_block_inputs(
                 })
                 .collect();
 
-            Json(QueryBlockInputsResponse {
+            let response = QueryBlockInputsResponse {
                 success: true,
-                block_inputs: Some(serialized_inputs),
+                block_inputs: Some(serialized_inputs.clone()),
                 error: None,
                 timing: Some(timing),
+            };
+
+            println!(
+                "Returning success response with {} block inputs, total size: {} bytes",
+                serialized_inputs.len(),
+                serialized_inputs.iter().map(|s| s.len()).sum::<usize>()
+            );
+
+            Json(response)
+        }
+        Err(e) => {
+            let error_msg = e.to_string();
+            println!("Returning error response: {}", error_msg);
+
+            Json(QueryBlockInputsResponse {
+                success: false,
+                block_inputs: None,
+                error: Some(error_msg),
+                timing: None,
             })
         }
-        Err(e) => Json(QueryBlockInputsResponse {
-            success: false,
-            block_inputs: None,
-            error: Some(e.to_string()),
-            timing: None,
-        }),
     }
 }
 
