@@ -68,129 +68,78 @@ async fn health_check() -> Json<Value> {
 }
 
 async fn get_attestation() -> Json<Value> {
+    // Catch-all error handler
+    match get_attestation_inner().await {
+        Ok(response) => response,
+        Err(e) => {
+            eprintln!("FATAL ERROR in get_attestation: {}", e);
+            Json(json!({
+                "success": false,
+                "error": format!("Internal server error: {}", e),
+                "step": "unknown"
+            }))
+        }
+    }
+}
+
+async fn get_attestation_inner() -> anyhow::Result<Json<Value>> {
     // Step 1: Connect to Celestia ISM
     println!("Step 1: Connecting to Celestia ISM...");
-    let client_config = match ClientConfig::from_env() {
-        Ok(c) => c,
-        Err(e) => {
-            return Json(
-                json!({"error": format!("Failed to load Celestia ISM config from environment: {}", e), "step": 1}),
-            )
-        }
-    };
-    let ism_client = match CelestiaIsmClient::new(client_config).await {
-        Ok(c) => c,
-        Err(e) => {
-            return Json(
-                json!({"error": format!("Failed to connect to Celestia ISM: {}", e), "step": 1}),
-            )
-        }
-    };
+    let client_config = ClientConfig::from_env()
+        .map_err(|e| anyhow!("Failed to load Celestia ISM config from environment: {}", e))?;
+    let ism_client = CelestiaIsmClient::new(client_config).await
+        .map_err(|e| anyhow!("Failed to connect to Celestia ISM: {}", e))?;
 
     println!("Step 2: Creating chain context...");
     let mut config = Config::default();
-    let celestia_rpc_url = match std::env::var("CELESTIA_RPC_URL") {
-        Ok(url) => url,
-        Err(_) => {
-            return Json(
-                json!({"error": "CELESTIA_RPC_URL environment variable not set", "step": 2}),
-            )
-        }
-    };
-    let evnode_rpc_url = match std::env::var("EV_NODE_URL") {
-        Ok(url) => url,
-        Err(_) => {
-            return Json(
-                json!({"error": "EV_NODE_URL environment variable not set", "step": 2}),
-            )
-        }
-    };
-    let evreth_rpc_url = match std::env::var("RETH_RPC_URL") {
-        Ok(url) => url,
-        Err(_) => {
-            return Json(
-                json!({"error": "RETH_RPC_URL environment variable not set", "step": 2}),
-            )
-        }
-    };
-    let evreth_ws_url = match std::env::var("RETH_WS_URL") {
-        Ok(url) => url,
-        Err(_) => {
-            return Json(
-                json!({"error": "RETH_WS_URL environment variable not set", "step": 2}),
-            )
-        }
-    };
+    let celestia_rpc_url = std::env::var("CELESTIA_RPC_URL")
+        .map_err(|_| anyhow!("CELESTIA_RPC_URL environment variable not set"))?;
+    let evnode_rpc_url = std::env::var("EV_NODE_URL")
+        .map_err(|_| anyhow!("EV_NODE_URL environment variable not set"))?;
+    let evreth_rpc_url = std::env::var("RETH_RPC_URL")
+        .map_err(|_| anyhow!("RETH_RPC_URL environment variable not set"))?;
+    let evreth_ws_url = std::env::var("RETH_WS_URL")
+        .map_err(|_| anyhow!("RETH_WS_URL environment variable not set"))?;
     config.rpc.celestia_rpc = celestia_rpc_url;
     config.rpc.evnode_rpc = evnode_rpc_url;
     config.rpc.evreth_rpc = evreth_rpc_url;
     config.rpc.evreth_ws = evreth_ws_url;
     config.pub_key = "3964a68700cf76e215626e076e76d23bd1f4c3b31184b5822fd7b4df15d5ce9a".to_string();
 
-    let chain_context = match ChainContext::from_config(config, Arc::new(ism_client)).await {
-        Ok(c) => c,
-        Err(e) => {
-            return Json(
-                json!({"error": format!("Failed to create chain context: {}", e), "step": 2}),
-            )
-        }
-    };
+    let chain_context = ChainContext::from_config(config, Arc::new(ism_client)).await
+        .map_err(|e| anyhow!("Failed to create chain context: {}", e))?;
 
     // Step 3: Connect to Tendermint
     println!("Step 3: Connecting to Tendermint...");
-    let tendermint_rpc_url = match std::env::var("TENDERMINT_RPC_URL") {
-        Ok(url) => url,
-        Err(_) => {
-            return Json(
-                json!({"error": "TENDERMINT_RPC_URL environment variable not set", "step": 3}),
-            )
-        }
-    };
-    let tendermint_client = match TendermintHttpClient::new(tendermint_rpc_url.as_str()) {
-        Ok(c) => c,
-        Err(e) => {
-            return Json(
-                json!({"error": format!("Failed to connect to Tendermint: {}", e), "step": 3}),
-            )
-        }
-    };
+    let tendermint_rpc_url = std::env::var("TENDERMINT_RPC_URL")
+        .map_err(|_| anyhow!("TENDERMINT_RPC_URL environment variable not set"))?;
+    let tendermint_client = TendermintHttpClient::new(tendermint_rpc_url.as_str())
+        .map_err(|e| anyhow!("Failed to connect to Tendermint: {}", e))?;
 
     // Step 4: Query ISM
     println!("Step 4: Querying ISM...");
-    let resp = match chain_context
+    let resp = chain_context
         .ism_client()
         .ism(QueryIsmRequest {
             id: chain_context.ism_id().to_string(),
         })
         .await
-    {
-        Ok(r) => r,
-        Err(e) => return Json(json!({"error": format!("Failed to query ISM: {}", e), "step": 4})),
-    };
+        .map_err(|e| anyhow!("Failed to query ISM: {}", e))?;
 
-    let ism = match resp.ism {
-        Some(i) => i,
-        None => return Json(json!({"error": "ZKISM not found", "step": 4})),
-    };
+    let ism = resp.ism
+        .ok_or_else(|| anyhow!("ZKISM not found"))?;
 
-    let state: State = match bincode::deserialize(&ism.state) {
-        Ok(s) => s,
-        Err(e) => {
-            return Json(json!({"error": format!("Failed to deserialize state: {}", e), "step": 4}))
-        }
-    };
+    let state: State = bincode::deserialize(&ism.state)
+        .map_err(|e| anyhow!("Failed to deserialize state: {}", e))?;
 
     // Step 5: Get Celestia head
     println!("Step 5: Getting Celestia head...");
     let trusted_celestia_height = state.celestia_height;
     let trusted_height = state.height;
     let trusted_root: FixedBytes<32> = FixedBytes::from_slice(&state.state_root);
-    let celestia_head_raw = match chain_context.celestia_client().header_local_head().await {
-        Ok(h) => h.height().value(),
-        Err(e) => {
-            return Json(json!({"error": format!("Failed to get Celestia head: {}", e), "step": 5}))
-        }
-    };
+    let celestia_head_raw = chain_context.celestia_client().header_local_head().await
+        .map_err(|e| anyhow!("Failed to get Celestia head: {}", e))?
+        .height().value();
     // Limit to MAX_BLOCKS to prevent OOM
     let celestia_head = celestia_head_raw.min(trusted_celestia_height + MAX_BLOCKS);
     if celestia_head < celestia_head_raw {
@@ -211,19 +160,13 @@ async fn get_attestation() -> Json<Value> {
         num_blocks
     );
 
-    let middleware_url = match std::env::var("MIDDLEWARE_ENDPOINT") {
-        Ok(url) => url,
-        Err(_) => {
-            return Json(
-                json!({"error": "MIDDLEWARE_ENDPOINT environment variable not set", "step": 6}),
-            )
-        }
-    };
+    let middleware_url = std::env::var("MIDDLEWARE_ENDPOINT")
+        .map_err(|_| anyhow!("MIDDLEWARE_ENDPOINT environment variable not set"))?;
 
     let trusted_root_hex = hex::encode(trusted_root.as_slice());
 
     let fetch_start = std::time::Instant::now();
-    let (block_inputs, _) = match fetch_block_inputs_from_middleware(
+    let (block_inputs, _) = fetch_block_inputs_from_middleware(
         &middleware_url,
         trusted_celestia_height + 1,
         celestia_head,
@@ -231,14 +174,7 @@ async fn get_attestation() -> Json<Value> {
         &trusted_root_hex,
     )
     .await
-    {
-        Ok(result) => result,
-        Err(e) => {
-            return Json(
-                json!({"error": format!("Failed to fetch block inputs from middleware: {}", e), "step": 6}),
-            )
-        }
-    };
+    .map_err(|e| anyhow!("Failed to fetch block inputs from middleware: {}", e))?;
     let fetch_duration = fetch_start.elapsed();
     println!(
         "  Fetch completed in {:.2}s ({} blocks, {:.2}ms per block)",
@@ -249,33 +185,16 @@ async fn get_attestation() -> Json<Value> {
 
     // Step 7: Get light blocks
     println!("Step 7: Getting light blocks...");
-    let trusted_light_block = match get_light_block(&tendermint_client, trusted_celestia_height)
+    let trusted_light_block = get_light_block(&tendermint_client, trusted_celestia_height)
         .await
-    {
-        Ok(b) => b,
-        Err(e) => {
-            return Json(
-                json!({"error": format!("Failed to get trusted light block: {}", e), "step": 7}),
-            )
-        }
-    };
-    let new_light_block = match get_light_block(&tendermint_client, celestia_head).await {
-        Ok(b) => b,
-        Err(e) => {
-            return Json(
-                json!({"error": format!("Failed to get new light block: {}", e), "step": 7}),
-            )
-        }
-    };
+        .map_err(|e| anyhow!("Failed to get trusted light block: {}", e))?;
+    let new_light_block = get_light_block(&tendermint_client, celestia_head).await
+        .map_err(|e| anyhow!("Failed to get new light block: {}", e))?;
     // Step 8: Native block verification (replaces SP1 execution for TEE)
     println!("Step 8: Running native block verification...");
     let verify_start = std::time::Instant::now();
-    let output = match verify_blocks(block_inputs, trusted_light_block, new_light_block).await {
-        Ok(o) => o,
-        Err(e) => {
-            return Json(json!({"error": format!("Block verification failed: {}", e), "step": 8}))
-        }
-    };
+    let output = verify_blocks(block_inputs, trusted_light_block, new_light_block).await
+        .map_err(|e| anyhow!("Block verification failed: {}", e))?;
     let verify_duration = verify_start.elapsed();
     println!(
         "  Verification completed in {:.2}s",
@@ -283,26 +202,16 @@ async fn get_attestation() -> Json<Value> {
     );
 
     // Serialize output (same format as SP1 would commit)
-    let output_bytes = match bincode::serialize(&output) {
-        Ok(bytes) => bytes,
-        Err(e) => {
-            return Json(
-                json!({"error": format!("Failed to serialize output: {}", e), "step": 8}),
-            )
-        }
-    };
+    let output_bytes = bincode::serialize(&output)
+        .map_err(|e| anyhow!("Failed to serialize output: {}", e))?;
 
     // Step 9: Get TEE attestation
     println!("Step 9: Getting TEE attestation...");
     let client = DstackClient::new(None);
     let report_data = sha256(&output_bytes);
 
-    let result = match client.get_quote(report_data).await {
-        Ok(r) => r,
-        Err(e) => {
-            return Json(json!({"error": format!("Failed to get TEE quote: {}", e), "step": 9}))
-        }
-    };
+    let result = client.get_quote(report_data).await
+        .map_err(|e| anyhow!("Failed to get TEE quote: {}", e))?;
 
     let response = json!({
         "success": true,
@@ -315,7 +224,7 @@ async fn get_attestation() -> Json<Value> {
         }
     });
 
-    Json(response)
+    Ok(Json(response))
 }
 
 fn sha256(data: &[u8]) -> Vec<u8> {
