@@ -48,10 +48,10 @@ async fn test_compute_evolve_state_root() {
 
     // Override default config with remote RPC endpoints
     let mut config = Config::default();
-    config.rpc.celestia_rpc = "http://178.199.12.26:26658".to_string();
-    config.rpc.evnode_rpc = "http://178.199.12.26:26658".to_string();
-    config.rpc.evreth_rpc = "http://178.199.12.26:8545".to_string();
-    config.rpc.evreth_ws = "ws://178.199.12.26:8546".to_string();
+    config.rpc.celestia_rpc = "http://51.159.171.247:26658".to_string();
+    config.rpc.evnode_rpc = "http://51.159.171.247:26658".to_string();
+    config.rpc.evreth_rpc = "http://51.159.171.247:8545".to_string();
+    config.rpc.evreth_ws = "ws://51.159.171.247:8546".to_string();
     config.pub_key = "3964a68700cf76e215626e076e76d23bd1f4c3b31184b5822fd7b4df15d5ce9a".to_string();
 
     let chain_context = ChainContext::from_config(config, Arc::new(ism_client))
@@ -59,7 +59,7 @@ async fn test_compute_evolve_state_root() {
         .unwrap();
 
     // use remote tendermint rpc
-    let tendermint_client = TendermintHttpClient::new("http://178.199.12.26:26657")
+    let tendermint_client = TendermintHttpClient::new("http://51.159.171.247:26657")
         .context("Failed to create Tendermint RPC client")
         .unwrap();
 
@@ -85,7 +85,7 @@ async fn test_compute_evolve_state_root() {
 
     // Get middleware endpoint from environment variable
     let middleware_url = std::env::var("MIDDLEWARE_ENDPOINT")
-        .unwrap_or_else(|_| "http://178.199.12.26:9091".to_string());
+        .unwrap_or_else(|_| "http://51.159.171.247:9091".to_string());
 
     // Fetch block inputs from middleware (replaces direct prefetch/build logic)
     let (block_inputs, middleware_timing) = fetch_block_inputs_from_middleware(

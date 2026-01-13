@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Count total transactions in Celestia height range 37-428
-# Server: 178.199.12.26
+# Server: 51.159.171.247
 
-RETH_RPC="http://178.199.12.26:8545"
-EV_NODE="http://178.199.12.26:7331"
-CELESTIA_RPC="http://178.199.12.26:26658"
+RETH_RPC="http://51.159.171.247:8545"
+EV_NODE="http://51.159.171.247:7331"
+CELESTIA_RPC="http://51.159.171.247:26658"
 NAMESPACE="a8045f161bf468bf4d44"
 
 echo "Querying Celestia blobs from height 37 to 428..."
@@ -13,7 +13,7 @@ echo "This will show how many EVM blocks need to be executed."
 echo ""
 
 # Use the middleware endpoint to get the data
-MIDDLEWARE="http://178.199.12.26:9091"
+MIDDLEWARE="http://51.159.171.247:9091"
 
 # Query middleware to see what blocks it would process
 # We need to figure out the trusted height/root first

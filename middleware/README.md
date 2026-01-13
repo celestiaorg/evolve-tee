@@ -54,7 +54,7 @@ Query block inputs for a range of Celestia heights.
 
 **Example:**
 ```bash
-curl "http://178.199.12.26:9091/query_block_inputs?from_height=100&to_height=105&trusted_height=50&trusted_root=abcd...1234"
+curl "http://51.159.171.247:9091/query_block_inputs?from_height=100&to_height=105&trusted_height=50&trusted_root=abcd...1234"
 ```
 
 **Response:**
@@ -89,7 +89,7 @@ Health check endpoint.
 
 The TEE app in [app/src/main.rs](../app/src/main.rs) uses the middleware by:
 
-1. Setting the `MIDDLEWARE_ENDPOINT` environment variable (e.g., `http://178.199.12.26:9091`)
+1. Setting the `MIDDLEWARE_ENDPOINT` environment variable (e.g., `http://51.159.171.247:9091`)
 2. Calling `fetch_block_inputs_from_middleware()` with the required parameters
 3. Receiving all block inputs in a single response
 4. Proceeding with verification

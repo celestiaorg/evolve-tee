@@ -87,7 +87,8 @@ async fn get_attestation_inner() -> anyhow::Result<Json<Value>> {
     println!("Step 1: Connecting to Celestia ISM...");
     let client_config = ClientConfig::from_env()
         .map_err(|e| anyhow!("Failed to load Celestia ISM config from environment: {}", e))?;
-    let ism_client = CelestiaIsmClient::new(client_config).await
+    let ism_client = CelestiaIsmClient::new(client_config)
+        .await
         .map_err(|e| anyhow!("Failed to connect to Celestia ISM: {}", e))?;
 
     println!("Step 2: Creating chain context...");
@@ -106,7 +107,8 @@ async fn get_attestation_inner() -> anyhow::Result<Json<Value>> {
     config.rpc.evreth_ws = evreth_ws_url;
     config.pub_key = "3964a68700cf76e215626e076e76d23bd1f4c3b31184b5822fd7b4df15d5ce9a".to_string();
 
-    let chain_context = ChainContext::from_config(config, Arc::new(ism_client)).await
+    let chain_context = ChainContext::from_config(config, Arc::new(ism_client))
+        .await
         .map_err(|e| anyhow!("Failed to create chain context: {}", e))?;
 
     // Step 3: Connect to Tendermint
@@ -126,8 +128,7 @@ async fn get_attestation_inner() -> anyhow::Result<Json<Value>> {
         .await
         .map_err(|e| anyhow!("Failed to query ISM: {}", e))?;
 
-    let ism = resp.ism
-        .ok_or_else(|| anyhow!("ZKISM not found"))?;
+    let ism = resp.ism.ok_or_else(|| anyhow!("ZKISM not found"))?;
 
     let state: State = bincode::deserialize(&ism.state)
         .map_err(|e| anyhow!("Failed to deserialize state: {}", e))?;
@@ -137,9 +138,13 @@ async fn get_attestation_inner() -> anyhow::Result<Json<Value>> {
     let trusted_celestia_height = state.celestia_height;
     let trusted_height = state.height;
     let trusted_root: FixedBytes<32> = FixedBytes::from_slice(&state.state_root);
-    let celestia_head_raw = chain_context.celestia_client().header_local_head().await
+    let celestia_head_raw = chain_context
+        .celestia_client()
+        .header_local_head()
+        .await
         .map_err(|e| anyhow!("Failed to get Celestia head: {}", e))?
-        .height().value();
+        .height()
+        .value();
     // Limit to MAX_BLOCKS to prevent OOM
     let celestia_head = celestia_head_raw.min(trusted_celestia_height + MAX_BLOCKS);
     if celestia_head < celestia_head_raw {
@@ -188,12 +193,14 @@ async fn get_attestation_inner() -> anyhow::Result<Json<Value>> {
     let trusted_light_block = get_light_block(&tendermint_client, trusted_celestia_height)
         .await
         .map_err(|e| anyhow!("Failed to get trusted light block: {}", e))?;
-    let new_light_block = get_light_block(&tendermint_client, celestia_head).await
+    let new_light_block = get_light_block(&tendermint_client, celestia_head)
+        .await
         .map_err(|e| anyhow!("Failed to get new light block: {}", e))?;
     // Step 8: Native block verification (replaces SP1 execution for TEE)
     println!("Step 8: Running native block verification...");
     let verify_start = std::time::Instant::now();
-    let output = verify_blocks(block_inputs, trusted_light_block, new_light_block).await
+    let output = verify_blocks(block_inputs, trusted_light_block, new_light_block)
+        .await
         .map_err(|e| anyhow!("Block verification failed: {}", e))?;
     let verify_duration = verify_start.elapsed();
     println!(
@@ -202,15 +209,17 @@ async fn get_attestation_inner() -> anyhow::Result<Json<Value>> {
     );
 
     // Serialize output (same format as SP1 would commit)
-    let output_bytes = bincode::serialize(&output)
-        .map_err(|e| anyhow!("Failed to serialize output: {}", e))?;
+    let output_bytes =
+        bincode::serialize(&output).map_err(|e| anyhow!("Failed to serialize output: {}", e))?;
 
     // Step 9: Get TEE attestation
     println!("Step 9: Getting TEE attestation...");
     let client = DstackClient::new(None);
     let report_data = sha256(&output_bytes);
 
-    let result = client.get_quote(report_data).await
+    let result = client
+        .get_quote(report_data)
+        .await
         .map_err(|e| anyhow!("Failed to get TEE quote: {}", e))?;
 
     let response = json!({
