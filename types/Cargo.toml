@@ -6,6 +6,6 @@ edition = "2024"
 [dependencies]
 serde.workspace = true
 serde_bytes.workspace = true
-dcap-qvl.workspace = true
+dcap-qvl = { workspace = true, default-features = false, features = ["std"] }
 sha2.workspace = true
 hex.workspace = true

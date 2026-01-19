@@ -29,7 +29,7 @@ dstack-verifier.workspace = true
 hex.workspace = true
 serde_json.workspace = true
 serde.workspace = true
-dcap-qvl.workspace = true
+dcap-qvl = { workspace = true, default-features = false, features = ["std", "report"] }
 sp1-sdk.workspace = true
 tee-attestation-types.workspace = true
 rsp-client-executor.workspace = true

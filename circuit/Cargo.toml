@@ -6,6 +6,6 @@ edition = "2024"
 [dependencies]
 sp1-zkvm.workspace = true
 tee-attestation-types.workspace = true
-dcap-qvl.workspace = true
+dcap-qvl = { workspace = true, default-features = false, features = ["std"] }
 serde_json.workspace = true
 sha2.workspace = true
