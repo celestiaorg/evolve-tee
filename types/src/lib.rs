@@ -1,5 +1,3 @@
-use core::panic;
-
 use dcap_qvl::QuoteCollateralV3;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha384};
@@ -14,7 +12,6 @@ pub struct Inputs {
     pub now: u64,
 }
 
-/// Validate the TCB attributes
 pub fn validate_tcb(report: &VerifiedReport) {
     fn validate_td10(report: &TDReport10) {
         let is_debug = report.td_attributes[0] & 0x01 != 0;
@@ -50,7 +47,6 @@ pub fn replay_event_logs(eventlog: &[EventLog], to_event: Option<&str>) -> [[u8;
         let mut mr = [0u8; 48];
 
         for event in eventlog.iter() {
-            event.validate();
             if event.imr == idx {
                 let digest = hex::decode(&event.digest).expect("Invalid digest hex");
                 let mut hasher = Sha384::new();
@@ -72,66 +68,13 @@ pub fn replay_event_logs(eventlog: &[EventLog], to_event: Option<&str>) -> [[u8;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EventLog {
-    /// IMR index, starts from 0
     pub imr: u32,
-    /// Event type
     pub event_type: u32,
-    /// Digest (hex-encoded string)
     pub digest: String,
-    /// Event name
     pub event: String,
-    /// Event payload (hex-encoded string)
     pub event_payload: String,
 }
 
-impl EventLog {
-    pub fn new(imr: u32, event_type: u32, event: String, event_payload: Vec<u8>) -> Self {
-        let digest = event_digest(event_type, &event, &event_payload);
-        Self {
-            imr,
-            event_type,
-            digest: hex::encode(&digest),
-            event,
-            event_payload: hex::encode(&event_payload),
-        }
-    }
-
-    pub fn new_str(imr: u32, event_type: u32, event: &str, event_payload: &str) -> Self {
-        Self::new(
-            imr,
-            event_type,
-            event.to_string(),
-            event_payload.as_bytes().to_vec(),
-        )
-    }
-
-    pub fn validate(&self) {
-        if self.imr != 3 {
-            // TODO: validate other imrs
-            return;
-        }
-        let event_payload_bytes = hex::decode(&self.event_payload).expect("Invalid event_payload hex");
-        let digest = event_digest(self.event_type, &self.event, &event_payload_bytes);
-        let digest_hex = hex::encode(&digest);
-        if digest_hex != self.digest {
-            panic!("invalid digest");
-        }
-    }
-}
-
-fn event_digest(ty: u32, event: &str, payload: &[u8]) -> [u8; 48] {
-    use sha2::Digest;
-    let mut hasher = sha2::Sha384::new();
-    hasher.update(ty.to_ne_bytes());
-    hasher.update(b":");
-    hasher.update(event.as_bytes());
-    hasher.update(b":");
-    hasher.update(payload);
-    hasher.finalize().into()
-}
-
-/// TCB (Trusted Computing Base) status enumeration.
-/// Represents the security status of a platform's TCB configuration.
 #[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 pub enum TcbStatus {
     UpToDate,
@@ -156,7 +99,6 @@ impl TcbStatus {
         }
     }
 
-    /// Returns true if the TCB status is valid (not revoked).
     pub fn is_valid(&self) -> bool {
         !matches!(self, Self::Revoked)
     }
@@ -176,8 +118,6 @@ impl core::fmt::Display for TcbStatus {
     }
 }
 
-/// TCB status with associated advisory IDs.
-/// Used to represent both platform and QE TCB statuses.
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
 pub struct TcbStatusWithAdvisory {
     pub status: TcbStatus,
@@ -185,7 +125,6 @@ pub struct TcbStatusWithAdvisory {
 }
 
 impl TcbStatusWithAdvisory {
-    /// Create a new TcbStatusWithAdvisory
     pub fn new(status: TcbStatus, advisory_ids: Vec<String>) -> Self {
         Self {
             status,
@@ -193,7 +132,6 @@ impl TcbStatusWithAdvisory {
         }
     }
 
-    /// Merge two TCB statuses, taking the worse status and combining advisory IDs
     pub fn merge(self, other: &TcbStatusWithAdvisory) -> Self {
         let final_status = if other.status.severity() > self.status.severity() {
             other.status
@@ -215,8 +153,6 @@ impl TcbStatusWithAdvisory {
     }
 }
 
-/// Verified report from dcap_qvl quote verification.
-/// Contains the parsed report data along with TCB status information.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct VerifiedReport {
     pub status: String,
@@ -261,7 +197,6 @@ pub struct EnclaveReport {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
-
 pub struct TDReport10 {
     #[serde(with = "serde_bytes")]
     pub tee_tcb_svn: [u8; 16],
@@ -304,19 +239,12 @@ pub struct TDReport15 {
     pub mr_service_td: [u8; 48],
 }
 
-/// Response from the TEE app's `/attestation` endpoint.
 #[derive(Deserialize)]
 pub struct AttestationResponse {
-    /// Whether the attestation request was successful.
     pub success: bool,
-    /// Hex-encoded SGX/TDX quote bytes.
     pub quote: Option<String>,
-    /// Event log data for attestation verification.
     pub event_log: Option<String>,
-    /// Hex-encoded output data committed to in the attestation.
     pub output: Option<String>,
-    /// Error message if the attestation failed.
     pub error: Option<String>,
-    /// Step at which the attestation failed (if applicable).
     pub step: Option<u32>,
 }
