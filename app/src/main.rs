@@ -76,7 +76,6 @@ async fn get_attestation() -> Json<Value> {
             Json(json!({
                 "success": false,
                 "error": format!("Internal server error: {}", e),
-                "step": "unknown"
             }))
         }
     }
