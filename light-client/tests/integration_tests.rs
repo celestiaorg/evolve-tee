@@ -132,6 +132,23 @@ async fn test_generate_proof() {
     let quote = hex::decode(&report.quote).expect("Failed to decode quote hex");
     let event_log = report.event_log.as_bytes();
 
+    // Verify event log can be decoded (regression test for format compatibility)
+    let decoded_events: Vec<tee_attestation_types::EventLog> =
+        serde_json::from_slice(event_log).expect("Failed to decode event log JSON");
+    println!("Successfully decoded {} event log entries", decoded_events.len());
+
+    // Verify first event has expected format (hex-encoded strings)
+    assert!(!decoded_events.is_empty(), "Event log should not be empty");
+    let first_event = &decoded_events[0];
+    assert!(
+        hex::decode(&first_event.digest).is_ok(),
+        "Event digest should be valid hex"
+    );
+    assert!(
+        hex::decode(&first_event.event_payload).is_ok(),
+        "Event payload should be valid hex"
+    );
+
     let collateral = dcap_qvl::collateral::get_collateral(
         "https://pccs.phala.network/sgx/certification/v4/",
         &quote,
@@ -222,6 +239,24 @@ async fn test_attestation_proof_from_tee() {
     let quote = hex::decode(&quote_hex).expect("Failed to decode quote hex");
     let event_log = event_log_str.as_bytes();
     let output = hex::decode(&output_hex).expect("Failed to decode output hex");
+
+    // Verify event log can be decoded (regression test for format compatibility)
+    let decoded_events: Vec<tee_attestation_types::EventLog> =
+        serde_json::from_slice(event_log).expect("Failed to decode event log JSON from TEE");
+    println!("Successfully decoded {} event log entries from TEE", decoded_events.len());
+
+    // Verify events have expected format (hex-encoded strings)
+    assert!(!decoded_events.is_empty(), "Event log from TEE should not be empty");
+    for (i, event) in decoded_events.iter().enumerate() {
+        assert!(
+            hex::decode(&event.digest).is_ok(),
+            "Event {} digest should be valid hex", i
+        );
+        assert!(
+            hex::decode(&event.event_payload).is_ok(),
+            "Event {} payload should be valid hex", i
+        );
+    }
 
     // Get collateral for the quote
     let collateral = dcap_qvl::collateral::get_collateral(
