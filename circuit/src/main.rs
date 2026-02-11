@@ -7,6 +7,16 @@ use tee_attestation_types::{
     replay_event_logs, validate_tcb,
 };
 
+/// Convert dcap_qvl TcbStatusWithAdvisory to local types using serde
+/// This is needed because we need to serialize these types for SP1 and dcap_qvl's
+/// tcb_info module is not public, so we can't directly access the types.
+fn convert_tcb_status_with_advisory<T: serde::Serialize>(status: &T) -> tee_attestation_types::TcbStatusWithAdvisory {
+    // Serialize and deserialize to convert between the two types
+    // They have the same structure, just different type paths
+    let json = serde_json::to_string(status).expect("Failed to serialize TcbStatusWithAdvisory");
+    serde_json::from_str(&json).expect("Failed to deserialize TcbStatusWithAdvisory")
+}
+
 pub fn main() {
     let inputs: Inputs = sp1_zkvm::io::read::<Inputs>();
 
@@ -98,6 +108,8 @@ pub fn main() {
         advisory_ids: verified_report.advisory_ids.clone(),
         report,
         ppid: verified_report.ppid.clone(),
+        qe_status: convert_tcb_status_with_advisory(&verified_report.qe_status),
+        platform_status: convert_tcb_status_with_advisory(&verified_report.platform_status),
     };
     validate_tcb(&verifed_report_alias);
 

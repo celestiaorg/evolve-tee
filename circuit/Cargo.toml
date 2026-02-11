@@ -7,5 +7,6 @@ edition = "2024"
 sp1-zkvm.workspace = true
 tee-attestation-types.workspace = true
 dcap-qvl = { workspace = true, default-features = false, features = ["std"] }
+serde.workspace = true
 serde_json.workspace = true
 sha2.workspace = true

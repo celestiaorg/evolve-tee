@@ -1,7 +1,6 @@
 use core::panic;
 
 use dcap_qvl::QuoteCollateralV3;
-//use dcap_qvl::QuoteCollateralV3;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha384};
 
@@ -164,6 +163,93 @@ fn event_digest(ty: u32, event: &str, payload: &[u8]) -> [u8; 48] {
     hasher.finalize().into()
 }
 
+/// TCB (Trusted Computing Base) status enumeration.
+/// Represents the security status of a platform's TCB configuration.
+#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
+pub enum TcbStatus {
+    UpToDate,
+    OutOfDateConfigurationNeeded,
+    OutOfDate,
+    ConfigurationAndSWHardeningNeeded,
+    ConfigurationNeeded,
+    SWHardeningNeeded,
+    Revoked,
+}
+
+impl TcbStatus {
+    fn severity(&self) -> u8 {
+        match self {
+            Self::UpToDate => 0,
+            Self::SWHardeningNeeded => 1,
+            Self::ConfigurationNeeded => 2,
+            Self::ConfigurationAndSWHardeningNeeded => 3,
+            Self::OutOfDate => 4,
+            Self::OutOfDateConfigurationNeeded => 5,
+            Self::Revoked => 6,
+        }
+    }
+
+    /// Returns true if the TCB status is valid (not revoked).
+    pub fn is_valid(&self) -> bool {
+        !matches!(self, Self::Revoked)
+    }
+}
+
+impl core::fmt::Display for TcbStatus {
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        match self {
+            Self::UpToDate => write!(f, "UpToDate"),
+            Self::OutOfDateConfigurationNeeded => write!(f, "OutOfDateConfigurationNeeded"),
+            Self::OutOfDate => write!(f, "OutOfDate"),
+            Self::ConfigurationAndSWHardeningNeeded => write!(f, "ConfigurationAndSWHardeningNeeded"),
+            Self::ConfigurationNeeded => write!(f, "ConfigurationNeeded"),
+            Self::SWHardeningNeeded => write!(f, "SWHardeningNeeded"),
+            Self::Revoked => write!(f, "Revoked"),
+        }
+    }
+}
+
+/// TCB status with associated advisory IDs.
+/// Used to represent both platform and QE TCB statuses.
+#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
+pub struct TcbStatusWithAdvisory {
+    pub status: TcbStatus,
+    pub advisory_ids: Vec<String>,
+}
+
+impl TcbStatusWithAdvisory {
+    /// Create a new TcbStatusWithAdvisory
+    pub fn new(status: TcbStatus, advisory_ids: Vec<String>) -> Self {
+        Self {
+            status,
+            advisory_ids,
+        }
+    }
+
+    /// Merge two TCB statuses, taking the worse status and combining advisory IDs
+    pub fn merge(self, other: &TcbStatusWithAdvisory) -> Self {
+        let final_status = if other.status.severity() > self.status.severity() {
+            other.status
+        } else {
+            self.status
+        };
+
+        let mut advisory_ids = self.advisory_ids;
+        for id in &other.advisory_ids {
+            if !advisory_ids.contains(id) {
+                advisory_ids.push(id.clone());
+            }
+        }
+
+        Self {
+            status: final_status,
+            advisory_ids,
+        }
+    }
+}
+
+/// Verified report from dcap_qvl quote verification.
+/// Contains the parsed report data along with TCB status information.
 #[derive(Debug, Clone, Deserialize, Serialize)]
 pub struct VerifiedReport {
     pub status: String,
@@ -171,6 +257,8 @@ pub struct VerifiedReport {
     pub report: Report,
     #[serde(with = "serde_bytes")]
     pub ppid: Vec<u8>,
+    pub qe_status: TcbStatusWithAdvisory,
+    pub platform_status: TcbStatusWithAdvisory,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
