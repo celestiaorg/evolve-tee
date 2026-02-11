@@ -1,6 +1,88 @@
+use core::panic;
+
 use dcap_qvl::QuoteCollateralV3;
+//use dcap_qvl::QuoteCollateralV3;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha384};
+
+/// Custom serde module for human-readable hex encoding of byte arrays.
+/// For human-readable formats (JSON), encodes as hex string.
+/// For binary formats, uses serde_bytes for efficiency.
+pub mod serde_human_bytes {
+    use serde::{Deserialize, Deserializer, Serializer, de::Error};
+
+    pub fn serialize<T, S>(bytes: &T, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        T: AsRef<[u8]>,
+        S: Serializer,
+    {
+        if serializer.is_human_readable() {
+            serializer.serialize_str(&hex::encode(bytes.as_ref()))
+        } else {
+            serde_bytes::serialize(bytes.as_ref(), serializer)
+        }
+    }
+
+    pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
+    where
+        T: TryFrom<Vec<u8>>,
+        <T as TryFrom<Vec<u8>>>::Error: core::fmt::Debug,
+        D: Deserializer<'de>,
+    {
+        let bytes = if deserializer.is_human_readable() {
+            let s = String::deserialize(deserializer)?;
+            hex::decode(&s).map_err(Error::custom)?
+        } else {
+            serde_bytes::deserialize(deserializer)?
+        };
+        T::try_from(bytes).map_err(|e| Error::custom(format!("{:?}", e)))
+    }
+}
+
+/// Custom serde module for human-readable hex encoding of fixed-size byte arrays.
+/// Handles empty strings by treating them as all-zero arrays (for dstack-qvl compatibility).
+pub mod serde_human_bytes_array {
+    use serde::{Deserialize, Deserializer, Serializer, de::Error};
+
+    pub fn serialize<S>(bytes: &[u8; 48], serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        if serializer.is_human_readable() {
+            serializer.serialize_str(&hex::encode(bytes))
+        } else {
+            serde_bytes::serialize(bytes.as_ref(), serializer)
+        }
+    }
+
+    pub fn deserialize<'de, D>(deserializer: D) -> Result<[u8; 48], D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        if deserializer.is_human_readable() {
+            let s = String::deserialize(deserializer)?;
+            // Handle empty strings as all-zero arrays (dstack-qvl compatibility)
+            if s.is_empty() {
+                return Ok([0u8; 48]);
+            }
+            let bytes = hex::decode(&s).map_err(Error::custom)?;
+            if bytes.len() != 48 {
+                return Err(Error::custom(format!("Expected 48 bytes, got {}", bytes.len())));
+            }
+            let mut array = [0u8; 48];
+            array.copy_from_slice(&bytes);
+            Ok(array)
+        } else {
+            let bytes: Vec<u8> = serde_bytes::deserialize(deserializer)?;
+            if bytes.len() != 48 {
+                return Err(Error::custom(format!("Expected 48 bytes, got {}", bytes.len())));
+            }
+            let mut array = [0u8; 48];
+            array.copy_from_slice(&bytes);
+            Ok(array)
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize)]
 pub struct Inputs {
@@ -12,6 +94,7 @@ pub struct Inputs {
     pub now: u64,
 }
 
+/// Validate the TCB attributes
 pub fn validate_tcb(report: &VerifiedReport) {
     fn validate_td10(report: &TDReport10) {
         let is_debug = report.td_attributes[0] & 0x01 != 0;
@@ -47,11 +130,22 @@ pub fn replay_event_logs(eventlog: &[EventLog], to_event: Option<&str>) -> [[u8;
         let mut mr = [0u8; 48];
 
         for event in eventlog.iter() {
+            event.validate();
             if event.imr == idx {
-                let digest = hex::decode(&event.digest).expect("Invalid digest hex");
+                // For IMR 3, compute digest from event data if digest is empty (all-zero)
+                // For other IMRs, skip events with all-zero digests
+                let digest = if event.digest == [0u8; 48] && idx == 3 {
+                    event_digest(event.event_type, &event.event, &event.event_payload)
+                } else if event.digest != [0u8; 48] {
+                    event.digest
+                } else {
+                    // Skip events with all-zero digests for IMR 0-2
+                    continue;
+                };
+
                 let mut hasher = Sha384::new();
                 hasher.update(mr);
-                hasher.update(&digest);
+                hasher.update(digest);
                 mr = hasher.finalize().into();
             }
             if let Some(to_event) = to_event {
@@ -68,89 +162,67 @@ pub fn replay_event_logs(eventlog: &[EventLog], to_event: Option<&str>) -> [[u8;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EventLog {
+    /// IMR index, starts from 0
     pub imr: u32,
+    /// Event type
     pub event_type: u32,
-    pub digest: String,
+    /// Digest
+    #[serde(with = "serde_human_bytes_array")]
+    pub digest: [u8; 48],
+    /// Event name
     pub event: String,
-    pub event_payload: String,
+    /// Event payload
+    #[serde(with = "serde_human_bytes")]
+    pub event_payload: Vec<u8>,
 }
 
-#[derive(Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
-pub enum TcbStatus {
-    UpToDate,
-    OutOfDateConfigurationNeeded,
-    OutOfDate,
-    ConfigurationAndSWHardeningNeeded,
-    ConfigurationNeeded,
-    SWHardeningNeeded,
-    Revoked,
-}
-
-impl TcbStatus {
-    fn severity(&self) -> u8 {
-        match self {
-            Self::UpToDate => 0,
-            Self::SWHardeningNeeded => 1,
-            Self::ConfigurationNeeded => 2,
-            Self::ConfigurationAndSWHardeningNeeded => 3,
-            Self::OutOfDate => 4,
-            Self::OutOfDateConfigurationNeeded => 5,
-            Self::Revoked => 6,
-        }
-    }
-
-    pub fn is_valid(&self) -> bool {
-        !matches!(self, Self::Revoked)
-    }
-}
-
-impl core::fmt::Display for TcbStatus {
-    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
-        match self {
-            Self::UpToDate => write!(f, "UpToDate"),
-            Self::OutOfDateConfigurationNeeded => write!(f, "OutOfDateConfigurationNeeded"),
-            Self::OutOfDate => write!(f, "OutOfDate"),
-            Self::ConfigurationAndSWHardeningNeeded => write!(f, "ConfigurationAndSWHardeningNeeded"),
-            Self::ConfigurationNeeded => write!(f, "ConfigurationNeeded"),
-            Self::SWHardeningNeeded => write!(f, "SWHardeningNeeded"),
-            Self::Revoked => write!(f, "Revoked"),
-        }
-    }
-}
-
-#[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
-pub struct TcbStatusWithAdvisory {
-    pub status: TcbStatus,
-    pub advisory_ids: Vec<String>,
-}
-
-impl TcbStatusWithAdvisory {
-    pub fn new(status: TcbStatus, advisory_ids: Vec<String>) -> Self {
+impl EventLog {
+    pub fn new(imr: u32, event_type: u32, event: String, event_payload: Vec<u8>) -> Self {
+        let digest = event_digest(event_type, &event, &event_payload);
         Self {
-            status,
-            advisory_ids,
+            imr,
+            event_type,
+            digest,
+            event,
+            event_payload,
         }
     }
 
-    pub fn merge(self, other: &TcbStatusWithAdvisory) -> Self {
-        let final_status = if other.status.severity() > self.status.severity() {
-            other.status
-        } else {
-            self.status
-        };
+    pub fn new_str(imr: u32, event_type: u32, event: &str, event_payload: &str) -> Self {
+        Self::new(
+            imr,
+            event_type,
+            event.to_string(),
+            event_payload.as_bytes().to_vec(),
+        )
+    }
 
-        let mut advisory_ids = self.advisory_ids;
-        for id in &other.advisory_ids {
-            if !advisory_ids.contains(id) {
-                advisory_ids.push(id.clone());
-            }
+    pub fn validate(&self) {
+        if self.imr != 3 {
+            // TODO: validate other imrs
+            return;
         }
-
-        Self {
-            status: final_status,
-            advisory_ids,
+        // Skip validation for all-zero digests (originally empty strings from dstack-qvl)
+        // These represent events where digest validation is not applicable
+        if self.digest == [0u8; 48] {
+            return;
+        }
+        let digest = event_digest(self.event_type, &self.event, &self.event_payload);
+        if digest != self.digest {
+            panic!("invalid digest");
         }
     }
+}
+
+fn event_digest(ty: u32, event: &str, payload: &[u8]) -> [u8; 48] {
+    use sha2::Digest;
+    let mut hasher = sha2::Sha384::new();
+    hasher.update(ty.to_ne_bytes());
+    hasher.update(b":");
+    hasher.update(event.as_bytes());
+    hasher.update(b":");
+    hasher.update(payload);
+    hasher.finalize().into()
 }
 
 #[derive(Debug, Clone, Deserialize, Serialize)]
@@ -160,8 +232,6 @@ pub struct VerifiedReport {
     pub report: Report,
     #[serde(with = "serde_bytes")]
     pub ppid: Vec<u8>,
-    pub qe_status: TcbStatusWithAdvisory,
-    pub platform_status: TcbStatusWithAdvisory,
 }
 
 #[derive(Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
@@ -197,6 +267,7 @@ pub struct EnclaveReport {
 }
 
 #[derive(Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Serialize, Deserialize)]
+
 pub struct TDReport10 {
     #[serde(with = "serde_bytes")]
     pub tee_tcb_svn: [u8; 16],
@@ -239,12 +310,19 @@ pub struct TDReport15 {
     pub mr_service_td: [u8; 48],
 }
 
+/// Response from the TEE app's `/attestation` endpoint.
 #[derive(Deserialize)]
 pub struct AttestationResponse {
+    /// Whether the attestation request was successful.
     pub success: bool,
+    /// Hex-encoded SGX/TDX quote bytes.
     pub quote: Option<String>,
+    /// Event log data for attestation verification.
     pub event_log: Option<String>,
+    /// Hex-encoded output data committed to in the attestation.
     pub output: Option<String>,
+    /// Error message if the attestation failed.
     pub error: Option<String>,
+    /// Step at which the attestation failed (if applicable).
     pub step: Option<u32>,
 }
