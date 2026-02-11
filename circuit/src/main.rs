@@ -9,8 +9,18 @@ use tee_attestation_types::{
 
 pub fn main() {
     let inputs: Inputs = sp1_zkvm::io::read::<Inputs>();
-    let verified_report = dcap_qvl::verify::verify(&inputs.quote, &inputs.collateral, inputs.now)
-        .expect("Failed to verify attestation");
+
+    // Debug: Print the timestamp we received
+    println!("Circuit received timestamp (Unix): {}", inputs.now);
+
+    let verified_report = match dcap_qvl::verify::verify(&inputs.quote, &inputs.collateral, inputs.now) {
+        Ok(report) => report,
+        Err(e) => {
+            println!("Attestation verification failed with error: {:?}", e);
+            println!("Timestamp used for verification: {}", inputs.now);
+            panic!("Failed to verify attestation: {:?}", e);
+        }
+    };
     let event_log: Vec<EventLog> = if !inputs.event_log.is_empty() {
         serde_json::from_slice(&inputs.event_log).unwrap()
     } else {

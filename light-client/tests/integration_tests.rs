@@ -5,10 +5,10 @@ use alloy::primitives::FixedBytes;
 use anyhow::{Context, anyhow};
 use celestia_grpc_client::{CelestiaIsmClient, QueryIsmRequest, types::ClientConfig};
 use celestia_rpc::HeaderClient;
-use dstack_verifier::Attestation;
 use ev_prover::{config::Config, prover::chain::ChainContext};
 use ev_zkevm_types::programs::block::{BlockRangeExecOutput, State};
 use serde::Deserialize;
+use sha2::Digest;
 use sp1_sdk::{ProverClient, SP1Stdin};
 use tee_attestation_types::{AttestationResponse, Inputs};
 use tee_light_client_lib::{
@@ -116,53 +116,6 @@ async fn test_compute_evolve_state_root() {
         .unwrap();
 
     println!("Output: {:?}", hex::encode(output.new_state.state_root));
-}
-
-/// Tests verification of a TEE attestation quote using DCAP collateral.
-///
-/// Loads a quote report from fixtures, fetches collateral from the PCCS server,
-/// and verifies the attestation is valid.
-#[tokio::test]
-async fn test_verify_quote() {
-    // Read the quote report from fixtures
-    let fixture_path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/quote-report.json");
-    let json_content = std::fs::read_to_string(fixture_path).expect("Failed to read fixture file");
-    let report: QuoteReport = serde_json::from_str(&json_content).expect("Failed to parse JSON");
-
-    // Decode the hex-encoded quote
-    let quote = hex::decode(&report.quote).expect("Failed to decode quote hex");
-    let event_log = report.event_log.as_bytes();
-
-    // Create attestation from quote and event log
-    let attestation =
-        Attestation::new(quote.clone(), event_log.to_vec()).expect("Failed to create attestation");
-
-    // Decode the report data from the attestation
-    let report_data = attestation
-        .decode_report_data()
-        .expect("Failed to decode report data");
-
-    let collateral = dcap_qvl::collateral::get_collateral(
-        "https://pccs.phala.network/sgx/certification/v4/",
-        &quote,
-    )
-    .await
-    .expect("Failed to get collateral");
-
-    let now = SystemTime::now()
-        .duration_since(SystemTime::UNIX_EPOCH)
-        .expect("Failed to get current time")
-        .as_secs();
-
-    let verified_attestation = attestation
-        .clone()
-        .verify_with_collateral(&report_data, collateral, now)
-        .expect("Failed to verify collateral");
-
-    // Decode app info
-    verified_attestation
-        .decode_app_info(false)
-        .expect("Failed to decode app info");
 }
 
 /// Tests ZK proof generation for TEE attestation verification.
@@ -343,4 +296,103 @@ fn test_verify_attestation_sp1_proof() {
         &sp1_verifier::GROTH16_VK_BYTES,
     )
     .expect("Failed to verify Groth16 proof from fixture");
+}
+
+/// Test that writes the compiled circuit ELF to a file.
+///
+/// This test exports the embedded CIRCUIT_ELF binary to the fixtures directory,
+/// which can be useful for debugging, distribution, or external verification.
+#[test]
+fn test_write_elf_to_file() {
+    let output_path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/circuit.elf");
+
+    std::fs::write(output_path, CIRCUIT_ELF).expect("Failed to write ELF to file");
+
+    println!("Successfully wrote circuit ELF to: {}", output_path);
+
+    // Verify the file was written correctly by reading it back
+    let written_elf = std::fs::read(output_path).expect("Failed to read back written ELF");
+
+    assert_eq!(
+        written_elf.len(),
+        CIRCUIT_ELF.len(),
+        "Written ELF size should match original"
+    );
+
+    assert_eq!(
+        written_elf, CIRCUIT_ELF,
+        "Written ELF content should match original"
+    );
+}
+
+/// Test that verifies a TEE quote using dcap_qvl directly.
+///
+/// This test loads a quote report from fixtures and verifies it using dcap_qvl's
+/// verify function (outside of the SP1 circuit). This is useful for testing the
+/// quote verification logic independently of ZK proof generation.
+#[tokio::test]
+async fn test_verify_quote_with_dcap_qvl() {
+    let fixture_path = concat!(env!("CARGO_MANIFEST_DIR"), "/fixtures/quote-report.json");
+    let json_content = std::fs::read_to_string(fixture_path).expect("Failed to read fixture file");
+    let report: QuoteReport = serde_json::from_str(&json_content).expect("Failed to parse JSON");
+
+    // Decode the hex-encoded quote
+    let quote = hex::decode(&report.quote).expect("Failed to decode quote hex");
+
+    // Get collateral for the quote
+    let collateral = dcap_qvl::collateral::get_collateral(
+        "https://pccs.phala.network/sgx/certification/v4/",
+        &quote,
+    )
+    .await
+    .expect("Failed to get collateral");
+
+    // Get current timestamp for verification
+    let now = SystemTime::now()
+        .duration_since(SystemTime::UNIX_EPOCH)
+        .expect("Failed to get current time")
+        .as_secs();
+
+    // Verify the quote using dcap_qvl
+    let verified_report = dcap_qvl::verify::verify(&quote, &collateral, now)
+        .expect("Failed to verify quote with dcap_qvl");
+
+    // Validate the verification result
+    println!("Verification status: {}", verified_report.status);
+    println!("Advisory IDs: {:?}", verified_report.advisory_ids);
+
+    // The status should indicate successful verification
+    assert!(
+        !verified_report.status.is_empty(),
+        "Status should not be empty"
+    );
+
+    // Verify that we have a valid report type
+    let report_data = if let Some(r) = verified_report.report.as_td10() {
+        println!("Verified TD 1.0 report");
+        r.report_data
+    } else if let Some(r) = verified_report.report.as_td15() {
+        println!("Verified TD 1.5 report");
+        r.base.report_data
+    } else if let Some(r) = verified_report.report.as_sgx() {
+        println!("Verified SGX Enclave report");
+        r.report_data
+    } else {
+        panic!("Unknown report type");
+    };
+
+    // If the fixture has output data, verify the report_data matches the output hash
+    if let Some(output_hex) = &report.output {
+        let output = hex::decode(output_hex).expect("Failed to decode output hex");
+        let output_hash = sha2::Sha256::digest(&output);
+
+        assert_eq!(
+            &output_hash[..],
+            &report_data[..32],
+            "Output hash should match the first 32 bytes of report_data"
+        );
+        println!("Report data matches output hash");
+    }
+
+    println!("Quote verification successful");
 }

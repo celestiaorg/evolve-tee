@@ -40,9 +40,7 @@ dotenvy = "0.15.7"
 futures = "0.3"
 rustls = { version = "0.23", features = ["aws_lc_rs"] }
 # dstack dependencies
-dstack-sdk = { git = "https://github.com/jonas089/dstack", default-features = false }
-dstack-types = { git = "https://github.com/jonas089/dstack", default-features = false }
-dstack-verifier = { git = "https://github.com/jonas089/dstack", default-features = false }
+dstack-sdk = { git = "https://github.com/Phala-Network/dstack", default-features = false }
 ev-types = { version = "0.0.1", default-features = false }
 ev-zkevm-types = { git = "https://github.com/celestiaorg/celestia-zkevm/", branch = "main" }
 tendermint-rpc = { version = "0.40.1", features = ["http-client"] }
