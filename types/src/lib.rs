@@ -4,40 +4,6 @@ use dcap_qvl::QuoteCollateralV3;
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha384};
 
-/// Custom serde module for human-readable hex encoding of byte arrays.
-/// For human-readable formats (JSON), encodes as hex string.
-/// For binary formats, uses serde_bytes for efficiency.
-pub mod serde_human_bytes {
-    use serde::{Deserialize, Deserializer, Serializer, de::Error};
-
-    pub fn serialize<T, S>(bytes: &T, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        T: AsRef<[u8]>,
-        S: Serializer,
-    {
-        if serializer.is_human_readable() {
-            serializer.serialize_str(&hex::encode(bytes.as_ref()))
-        } else {
-            serde_bytes::serialize(bytes.as_ref(), serializer)
-        }
-    }
-
-    pub fn deserialize<'de, T, D>(deserializer: D) -> Result<T, D::Error>
-    where
-        T: TryFrom<Vec<u8>>,
-        <T as TryFrom<Vec<u8>>>::Error: core::fmt::Debug,
-        D: Deserializer<'de>,
-    {
-        let bytes = if deserializer.is_human_readable() {
-            let s = String::deserialize(deserializer)?;
-            hex::decode(&s).map_err(Error::custom)?
-        } else {
-            serde_bytes::deserialize(deserializer)?
-        };
-        T::try_from(bytes).map_err(|e| Error::custom(format!("{:?}", e)))
-    }
-}
-
 #[derive(Serialize, Deserialize)]
 pub struct Inputs {
     pub quote: Vec<u8>,
@@ -86,9 +52,10 @@ pub fn replay_event_logs(eventlog: &[EventLog], to_event: Option<&str>) -> [[u8;
         for event in eventlog.iter() {
             event.validate();
             if event.imr == idx {
+                let digest = hex::decode(&event.digest).expect("Invalid digest hex");
                 let mut hasher = Sha384::new();
                 hasher.update(mr);
-                hasher.update(event.digest);
+                hasher.update(&digest);
                 mr = hasher.finalize().into();
             }
             if let Some(to_event) = to_event {
@@ -109,14 +76,12 @@ pub struct EventLog {
     pub imr: u32,
     /// Event type
     pub event_type: u32,
-    /// Digest
-    #[serde(with = "serde_human_bytes")]
-    pub digest: [u8; 48],
+    /// Digest (hex-encoded string)
+    pub digest: String,
     /// Event name
     pub event: String,
-    /// Event payload
-    #[serde(with = "serde_human_bytes")]
-    pub event_payload: Vec<u8>,
+    /// Event payload (hex-encoded string)
+    pub event_payload: String,
 }
 
 impl EventLog {
@@ -125,9 +90,9 @@ impl EventLog {
         Self {
             imr,
             event_type,
-            digest,
+            digest: hex::encode(&digest),
             event,
-            event_payload,
+            event_payload: hex::encode(&event_payload),
         }
     }
 
@@ -145,8 +110,10 @@ impl EventLog {
             // TODO: validate other imrs
             return;
         }
-        let digest = event_digest(self.event_type, &self.event, &self.event_payload);
-        if digest != self.digest {
+        let event_payload_bytes = hex::decode(&self.event_payload).expect("Invalid event_payload hex");
+        let digest = event_digest(self.event_type, &self.event, &event_payload_bytes);
+        let digest_hex = hex::encode(&digest);
+        if digest_hex != self.digest {
             panic!("invalid digest");
         }
     }
