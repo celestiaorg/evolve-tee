@@ -1,5 +1,5 @@
 [workspace]
-members = ["app", "circuit", "light-client", "middleware", "types"]
+members = ["app", "circuit", "types"]
 resolver = "2"
 
 [workspace.dependencies]
@@ -46,7 +46,6 @@ ev-zkevm-types = { git = "https://github.com/celestiaorg/celestia-zkevm/", branc
 tendermint-rpc = { version = "0.40.1", features = ["http-client"] }
 celestia-grpc-client = { git = "https://github.com/celestiaorg/celestia-zkevm/" }
 hex = "0.4"
-tee-light-client-lib = { package = "tee-light-client-lib", path = "light-client" }
 tee-attestation-types = { package = "tee-attestation-types", path = "types" }
 prost = "0.12"
 bincode = "1.3.3"

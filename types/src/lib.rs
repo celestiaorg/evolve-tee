@@ -67,7 +67,10 @@ pub mod serde_human_bytes_array {
             }
             let bytes = hex::decode(&s).map_err(Error::custom)?;
             if bytes.len() != 48 {
-                return Err(Error::custom(format!("Expected 48 bytes, got {}", bytes.len())));
+                return Err(Error::custom(format!(
+                    "Expected 48 bytes, got {}",
+                    bytes.len()
+                )));
             }
             let mut array = [0u8; 48];
             array.copy_from_slice(&bytes);
@@ -75,7 +78,10 @@ pub mod serde_human_bytes_array {
         } else {
             let bytes: Vec<u8> = serde_bytes::deserialize(deserializer)?;
             if bytes.len() != 48 {
-                return Err(Error::custom(format!("Expected 48 bytes, got {}", bytes.len())));
+                return Err(Error::custom(format!(
+                    "Expected 48 bytes, got {}",
+                    bytes.len()
+                )));
             }
             let mut array = [0u8; 48];
             array.copy_from_slice(&bytes);
